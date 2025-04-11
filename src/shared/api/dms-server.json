@@ -1,0 +1,615 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8081",
+            "description": "Generated server url"
+        }
+    ],
+    "paths": {
+        "/profile": {
+            "get": {
+                "tags": [
+                    "profile-controller"
+                ],
+                "operationId": "getProfileInfo",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "profile-controller"
+                ],
+                "operationId": "create",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/search": {
+            "post": {
+                "tags": [
+                    "profile-controller"
+                ],
+                "operationId": "search",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ModelsRequestDtoProfileFiltersDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelsResponseDtoProfileModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/consultationslot/search": {
+            "post": {
+                "tags": [
+                    "consultation-slot-controller"
+                ],
+                "operationId": "findConsultations",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ModelsRequestDtoConsultationSlotsFilterDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelsResponseDtoConsultationSlotModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/consultation": {
+            "get": {
+                "tags": [
+                    "consultation-controller"
+                ],
+                "operationId": "getCurrentUserConsultations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelsResponseDtoConsultationModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "consultation-controller"
+                ],
+                "operationId": "create_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConsultationModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultationModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/authentication": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "operationId": "authenticate",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthenticationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/authentication/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/consultationslot/{id}": {
+            "get": {
+                "tags": [
+                    "consultation-slot-controller"
+                ],
+                "summary": "Получить информацию о слоте консультации",
+                "operationId": "getConsultationSlotInfo",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "appointmentStartDateTime",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "appointmentEndDateTime",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultationSlotInfoDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/autocomplete/specialization": {
+            "get": {
+                "tags": [
+                    "autocomplete-controller"
+                ],
+                "operationId": "getCurrentUserConsultations_1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelsResponseDtoSpecializationModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CityModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DoctorProfileModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserModel"
+                    },
+                    "city": {
+                        "$ref": "#/components/schemas/CityModel"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "workExperiences": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkExperienceModel"
+                        }
+                    },
+                    "educations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EducationModel"
+                        }
+                    },
+                    "specializations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpecializationModel"
+                        }
+                    }
+                }
+            },
+            "EducationModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "studyplace": {
+                        "type": "string"
+                    },
+                    "specializations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpecializationModel"
+                        }
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                }
+            },
+            "ProfileModel": {
+                "type": "object",
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/DoctorProfileModel"
+                    }
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserModel"
+                    },
+                    "city": {
+                        "$ref": "#/components/schemas/CityModel"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SpecializationModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UserModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "login": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "PATIENT",
+                                "DOCTOR",
+                                "MODERATOR"
+                            ]
+                        },
+                        "uniqueItems": true
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "WorkExperienceModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "workplace": {
+                        "type": "string"
+                    },
+                    "specialization": {
+                        "$ref": "#/components/schemas/SpecializationModel"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                }
+            },
+            "ModelsRequestDtoProfileFiltersDto": {
+                "type": "object",
+                "properties": {
+                    "filters": {
+                        "$ref": "#/components/schemas/ProfileFiltersDto"
+                    }
+                }
+            },
+            "ProfileFiltersDto": {
+                "type": "object",
+                "properties": {
+                    "userIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                }
+            },
+            "ModelsResponseDtoProfileModel": {
+                "type": "object",
+                "properties": {
+                    "models": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProfileModel"
+                        }
+                    }
+                }
+            },
+            "ConsultationSlotsFilterDto": {
+                "type": "object",
+                "properties": {
+                    "specializationName": {
+                        "type": "string"
+                    },
+                    "consultationStartDateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ModelsRequestDtoConsultationSlotsFilterDto": {
+                "type": "object",
+                "properties": {
+                    "filters": {
+                        "$ref": "#/components/schemas/ConsultationSlotsFilterDto"
+                    }
+                }
+            },
+            "ConsultationSlotModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "specialization": {
+                        "$ref": "#/components/schemas/SpecializationModel"
+                    },
+                    "duration": {
+                        "type": "string",
+                        "example": "PT2H30M"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserModel"
+                    }
+                }
+            },
+            "ModelsResponseDtoConsultationSlotModel": {
+                "type": "object",
+                "properties": {
+                    "models": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsultationSlotModel"
+                        }
+                    }
+                }
+            },
+            "ConsultationModel": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "patient": {
+                        "$ref": "#/components/schemas/UserModel"
+                    },
+                    "doctor": {
+                        "$ref": "#/components/schemas/UserModel"
+                    },
+                    "startDateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "consultationSlot": {
+                        "$ref": "#/components/schemas/ConsultationSlotModel"
+                    },
+                    "consultationResult": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AuthenticationRequest": {
+                "type": "object",
+                "properties": {
+                    "login": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "rememberMe": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "login",
+                    "password"
+                ]
+            },
+            "ConsultationSlotInfoDto": {
+                "type": "object",
+                "properties": {
+                    "consultationSlotModel": {
+                        "$ref": "#/components/schemas/ConsultationSlotModel"
+                    },
+                    "appointmentDateTimes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
+            },
+            "ModelsResponseDtoConsultationModel": {
+                "type": "object",
+                "properties": {
+                    "models": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsultationModel"
+                        }
+                    }
+                }
+            },
+            "ModelsResponseDtoSpecializationModel": {
+                "type": "object",
+                "properties": {
+                    "models": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpecializationModel"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
