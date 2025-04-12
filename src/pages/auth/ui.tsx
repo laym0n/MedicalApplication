@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { FC, useCallback, useState } from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React, {FC, useCallback, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,26 +15,15 @@ const AuthScreen: FC<{isLogin: boolean}> = ({isLogin}) => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const {mutateAsync: signInAsync, mutate: signIn} = useSignInCall();
+  const {mutateAsync: signInAsync} = useSignInCall();
 
   const handleAuth = useCallback(() => {
-    try {
-      console.log(signIn);
-      console.log(signInAsync);
-      const response = signIn({
-        login: login,
-        password: password,
-        rememberMe: true,
-      });
-      console.log(response);
-    } catch (reason) {
-      console.log(reason);
-    } finally {
-
-    }
-    // .then(() => console.log('success'))
-    // .catch((reason) => console.log(reason));
-  }, [login, password, signIn, signInAsync]);
+    signInAsync({
+      login: login,
+      password: password,
+      rememberMe: true,
+    }).catch(console.error);
+  }, [login, password, signInAsync]);
 
   return (
     <View style={styles.container}>

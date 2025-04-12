@@ -1,6 +1,9 @@
-import Reactotron, { networking } from 'reactotron-react-native';
+import Reactotron, { networking, trackGlobalErrors, trackGlobalLogs, devTools } from 'reactotron-react-native';
 
-Reactotron.configure() // controls connection & communication settings
-  .useReactNative() // add all built-in react native plugins
+Reactotron.configure()
+  .useReactNative()
   .use(networking())
-  .connect(); // let's connect!
+  .use(trackGlobalErrors())
+  .use(trackGlobalLogs())
+  .use(devTools())
+  .connect();
