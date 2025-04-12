@@ -1,4 +1,4 @@
-import {AxiosContext, axiosInstance} from '@app/constants';
+import {AxiosContext, axiosInstance} from '@app/constants/client';
 import {LoginScreen} from '@pages/auth/ui';
 import DocumentsScreen from '@pages/documents/ui';
 import {NavigationContainer} from '@react-navigation/native';
@@ -15,12 +15,12 @@ function App(): React.JSX.Element {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <AxiosContext.Provider value={axiosInstance}>
-          <NavigationContainer>
-            <Stack.Navigator initialRouteName="Documents">
-              <Stack.Screen name="Documents" component={DocumentsScreen} />
-              <Stack.Screen name="Auth" component={LoginScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
+            <NavigationContainer>
+              <Stack.Navigator initialRouteName="Documents">
+                <Stack.Screen name="Documents" component={DocumentsScreen} />
+                <Stack.Screen name="Auth" component={LoginScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
         </AxiosContext.Provider>
       </QueryClientProvider>
     </React.StrictMode>

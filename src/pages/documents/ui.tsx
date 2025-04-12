@@ -1,3 +1,4 @@
+import Layout from '@pages/layout/ui';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
@@ -20,40 +21,42 @@ const DocumentsScreen = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Верхний ряд с иконками */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconContainer}>
-          {/* <Ionicons name="notifications" size={30} color="black" /> */}
-          <Icon name="user" size={30} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconContainer}>
-          {/* <Ionicons name="person-circle" size={30} color="black" /> */}
-          <Button
-            title="Go to Jane's profile"
-            onPress={() => navigation.navigate('Auth', {name: 'Jane'})}
-          />
-          {/* <Button onTouchEnd={() => navigation.navigate('Auth')}>
+    <Layout>
+      <View style={styles.container}>
+        {/* Верхний ряд с иконками */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.iconContainer}>
+            {/* <Ionicons name="notifications" size={30} color="black" /> */}
+            <Icon name="user" size={30} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconContainer}>
+            {/* <Ionicons name="person-circle" size={30} color="black" /> */}
+            <Button
+              title="Go to Jane's profile"
+              onPress={() => navigation.navigate('Auth', {name: 'Jane'})}
+            />
+            {/* <Button onTouchEnd={() => navigation.navigate('Auth')}>
             Авторизация
           </Button> */}
-          <Icon name="bell" size={30} color="#000" />
+            <Icon name="bell" size={30} color="#000" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Центр экрана с карточками документов */}
+        <ScrollView contentContainerStyle={styles.cardsContainer}>
+          {documents.map(doc => (
+            <View key={doc.id} style={styles.card}>
+              <Text style={styles.cardText}>{doc.name}</Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Кнопка добавления нового документа */}
+        <TouchableOpacity style={styles.addButton}>
+          <Text style={styles.addButtonText}>Добавить новый документ</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Центр экрана с карточками документов */}
-      <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {documents.map(doc => (
-          <View key={doc.id} style={styles.card}>
-            <Text style={styles.cardText}>{doc.name}</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Кнопка добавления нового документа */}
-      <TouchableOpacity style={styles.addButton}>
-        <Text style={styles.addButtonText}>Добавить новый документ</Text>
-      </TouchableOpacity>
-    </View>
+    </Layout>
   );
 };
 
