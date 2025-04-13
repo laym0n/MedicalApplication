@@ -9,8 +9,9 @@ module.exports = {
           '@src': './src/',
           '@pages': './src/pages',
           '@shared': './src/shared',
+          '@widget': './src/widget',
           '@app': './src/app',
-          '@components': './src/components', // можно добавить и другие алиасы
+          '@components': './src/components',
         },
       },
     ],

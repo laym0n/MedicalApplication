@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "start": "npx react-native start --reset-cache --port=8088",
     "generate": "npx openapi-typescript ./src/shared/api/dms-server.json -o ./src/shared/api/schema.d.ts",
+    "view logs": "adb logcat",
     "test": "jest"
   },
   "dependencies": {
@@ -19,12 +20,15 @@
     "react": "19.0.0",
     "react-native": "0.78.1",
     "react-native-devsettings": "^1.0.5",
+    "react-native-document-picker": "^9.3.1",
+    "react-native-error-boundary": "^2.0.0",
     "react-native-gesture-handler": "^2.24.0",
     "react-native-paper": "^5.13.1",
     "react-native-reanimated": "^3.17.1",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-screens": "^4.9.2",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-webrtc": "^124.0.5",
     "set-cookie-parser": "^2.7.1"
   },
   "devDependencies": {
@@ -41,6 +45,7 @@
     "@types/jest": "^29.5.13",
     "@types/react": "^19.0.0",
     "@types/react-native-vector-icons": "^6.4.18",
+    "@types/react-native-webrtc": "^1.100.0",
     "@types/react-test-renderer": "^19.0.0",
     "@types/set-cookie-parser": "^2.4.10",
     "babel-plugin-module-resolver": "^5.0.2",

@@ -13,6 +13,7 @@ const config = {
         '@pages': path.resolve(__dirname, 'src/pages'),
         '@shared': path.resolve(__dirname, 'src/shared'),
         '@app': path.resolve(__dirname, 'src/app'),
+        '@widget': path.resolve(__dirname, 'src/widget'),
     },
 };
 

@@ -1,4 +1,4 @@
-import Layout from '@pages/layout/ui';
+import Layout from '@widget/layout/ui';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {

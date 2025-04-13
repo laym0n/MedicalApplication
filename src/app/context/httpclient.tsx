@@ -1,8 +1,9 @@
+import {httpBaseUrl} from '@app/constants';
 import CookieManager from '@react-native-cookies/cookies';
 import axios, {AxiosInstance} from 'axios';
 import {createContext} from 'react';
 
-const baseURL = 'http://10.0.2.2:8081';
+const baseURL = httpBaseUrl;
 export const axiosInstance = axios.create({
   baseURL,
   withCredentials: true,
