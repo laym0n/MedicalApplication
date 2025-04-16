@@ -10,6 +10,7 @@ module.exports = {
           '@pages': './src/pages',
           '@shared': './src/shared',
           '@widget': './src/widget',
+          '@feature': './src/feature',
           '@app': './src/app',
           '@components': './src/components',
         },

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import DocumentRequestNotification from '@widget/documentrequestmodal';
 
 const DocumentsScreen = () => {
   const navigation = useNavigation();
@@ -22,6 +23,7 @@ const DocumentsScreen = () => {
 
   return (
     <Layout>
+      <DocumentRequestNotification />
       <View style={styles.container}>
         {/* Верхний ряд с иконками */}
         <View style={styles.header}>
