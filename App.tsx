@@ -1,15 +1,20 @@
-import {AxiosContext, axiosInstance} from '@app/context/httpclient';
-import {LoginScreen} from '@pages/auth/ui';
+import '@app/config/DatabaseConfig';
+import { initDatabase } from '@app/config/DatabaseConfig';
+import '@app/config/ReactotronConfig';
+import { AxiosContext, axiosInstance } from '@app/context/httpclient';
+import { LoginScreen } from '@pages/auth/ui';
+import DocumentAddScreen from '@pages/documentadd/ui';
 import DocumentsScreen from '@pages/documents/ui';
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import './ReactotronConfig';
 import ErrorBoundary from 'react-native-error-boundary';
+import 'reflect-metadata';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
+initDatabase();
 
 function App(): React.JSX.Element {
   return (
@@ -20,6 +25,7 @@ function App(): React.JSX.Element {
             <NavigationContainer>
               <Stack.Navigator initialRouteName="Documents">
                 <Stack.Screen name="Documents" component={DocumentsScreen} />
+                <Stack.Screen name="DocumentAdd" component={DocumentAddScreen} />
                 <Stack.Screen name="Auth" component={LoginScreen} />
               </Stack.Navigator>
             </NavigationContainer>

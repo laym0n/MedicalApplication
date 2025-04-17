@@ -1,6 +1,8 @@
+import {useNavigation} from '@react-navigation/native';
+import {Document} from '@shared/db/entity/document';
+import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
-import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Button,
   ScrollView,
@@ -10,16 +12,18 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import DocumentRequestNotification from '@widget/documentrequestmodal';
 
 const DocumentsScreen = () => {
   const navigation = useNavigation();
-  // Массив документов, которые могут быть отображены
-  const documents = [
-    {id: 1, name: 'Документ 1'},
-    {id: 2, name: 'Документ 2'},
-    {id: 3, name: 'Документ 3'},
-  ];
+  const [documents, setDocuments] = useState<Document[]>([]);
+  useEffect(() => {
+    Document.find().then(newDocuments => setDocuments(newDocuments));
+  }, []);
+
+  const handleAddNewDocument = useCallback(
+    () => navigation.navigate('DocumentAdd'),
+    [navigation],
+  );
 
   return (
     <Layout>
@@ -55,7 +59,9 @@ const DocumentsScreen = () => {
 
         {/* Кнопка добавления нового документа */}
         <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText}>Добавить новый документ</Text>
+          <Text style={styles.addButtonText} onPress={handleAddNewDocument}>
+            Добавить новый документ
+          </Text>
         </TouchableOpacity>
       </View>
     </Layout>
