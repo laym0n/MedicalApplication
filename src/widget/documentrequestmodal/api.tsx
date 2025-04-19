@@ -1,12 +1,6 @@
-import { getIceServers, wsBaseUrl } from '@app/constants';
-import { ProfileModel } from '@shared/api/types';
-import {
-  createContext,
-  RefObject,
-  useCallback,
-  useContext,
-  useRef,
-} from 'react';
+import {getIceServers, wsBaseUrl} from '@app/constants';
+import {ProfileModel} from '@shared/api/types';
+import {createContext, RefObject, useCallback, useContext, useRef} from 'react';
 import {
   registerGlobals,
   RTCIceCandidate,
@@ -14,9 +8,9 @@ import {
   RTCSessionDescription,
 } from 'react-native-webrtc';
 import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
-import { DocumentMetadata, P2PConnectionEstablishPayload } from './types';
-import { Document } from '@shared/db/entity/document';
-import { decode as atob } from 'base-64';
+import {DocumentMetadata, P2PConnectionEstablishPayload} from './types';
+import {Document} from '@shared/db/entity/document';
+import {decode as atob} from 'base-64';
 
 registerGlobals();
 const baseURL = wsBaseUrl;
@@ -73,6 +67,33 @@ const useWebRTCContext = () => {
   return context;
 };
 
+const useCloseRtcPeerConnection = () => {
+  const {dataChannelRef, rtcPeerConnectionRef} = useWebRTCContext();
+  const closeRtcPeerConnection = useCallback(() => {
+    if (dataChannelRef.current) {
+      if (
+        dataChannelRef.current.readyState === 'open' ||
+        dataChannelRef.current.readyState === 'connecting'
+      ) {
+        dataChannelRef.current.close();
+      }
+      dataChannelRef.current = undefined;
+    }
+
+    if (rtcPeerConnectionRef.current) {
+      rtcPeerConnectionRef.current.getSenders().forEach(sender => {
+        if (sender.track) {
+          sender.track.stop();
+        }
+      });
+
+      rtcPeerConnectionRef.current.close();
+      rtcPeerConnectionRef.current = undefined;
+    }
+  }, [dataChannelRef, rtcPeerConnectionRef]);
+  return closeRtcPeerConnection;
+};
+
 const useCreateNewRTCPeerConnection = () => {
   const {
     sendViaWebSocketRef,
@@ -80,6 +101,7 @@ const useCreateNewRTCPeerConnection = () => {
     dataChannelRef,
     sendViaDataChannelRef,
   } = useWebRTCContext();
+  const closeRTCPeerConnection = useCloseRtcPeerConnection();
   return useCallback(async () => {
     const peerConstraints = {
       iceServers: await getIceServers(),
@@ -115,6 +137,14 @@ const useCreateNewRTCPeerConnection = () => {
     });
     newPeerConnection.addEventListener('iceconnectionstatechange', () => {
       console.log('❄️ ice state:', newPeerConnection.iceConnectionState);
+      if (
+        newPeerConnection.iceConnectionState === 'disconnected' ||
+        newPeerConnection.iceConnectionState === 'failed' ||
+        newPeerConnection.iceConnectionState === 'closed'
+      ) {
+        console.log('Соединение разорвано');
+        closeRTCPeerConnection();
+      }
     });
     rtcPeerConnectionRef.current = newPeerConnection;
 
@@ -238,9 +268,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-export const useSendDataViaP2P = (
-  onOfferReceived: () => void,
-) => {
+export const useSendDataViaP2P = (onOfferReceived: () => void) => {
   const {
     lastReceivedOfferRef,
     sendViaWebSocketRef,
@@ -297,16 +325,21 @@ export const useSendDataViaP2P = (
           });
         })
         .then(() => {
-          sendViaDataChannelRef.current!(JSON.stringify({
-            mime: document.mime,
-            name: document.name,
-          } as DocumentMetadata));
+          sendViaDataChannelRef.current!(
+            JSON.stringify({
+              mime: document.mime,
+              name: document.name,
+            } as DocumentMetadata),
+          );
         })
         .then(async () => {
           const chunkSize = 16 * 1024 * 10;
           const buffer = base64ToUint8Array(pureDocument);
           for (let offset = 0; offset < buffer.length; offset += chunkSize) {
-            const chunk = buffer.slice(offset, Math.min(offset + chunkSize, buffer.length));
+            const chunk = buffer.slice(
+              offset,
+              Math.min(offset + chunkSize, buffer.length),
+            );
             await sendViaDataChannelRef.current!(chunk);
           }
           sendViaDataChannelRef.current!('EOF');
@@ -314,7 +347,13 @@ export const useSendDataViaP2P = (
         // .then(() => rtcPeerConnectionRef.current?.close())
         .catch(console.error);
     },
-    [createNewPeerConnection, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaDataChannelRef, sendViaWebSocketRef],
+    [
+      createNewPeerConnection,
+      lastReceivedOfferRef,
+      rtcPeerConnectionRef,
+      sendViaDataChannelRef,
+      sendViaWebSocketRef,
+    ],
   );
   return {sendDocumentViaP2P, connectViaWebSocket};
 };

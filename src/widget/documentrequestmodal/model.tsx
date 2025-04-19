@@ -50,6 +50,7 @@ export const useSendDocument = () => {
     }
     readDocument(selectedDocument)
     .then(pureDocument => sendDocumentViaP2P(pureDocument!, selectedDocument))
+    .then(() => setVisible(false))
     .catch(console.error);
   }, [documents, readDocument, sendDocumentViaP2P]);
   return {
