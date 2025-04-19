@@ -5,7 +5,7 @@ import {WebRTCContextProvider} from './api';
 import {useSendDocument} from './model';
 
 const DocumentRequestModal: React.FC<{}> = ({}) => {
-  const {documents, onIgnore, onSend, visible, selectedDocumentIdRef} =
+  const {documents, onIgnore, onSend, visible, selectedDocumentIdRef, onReadyToReceive} =
     useSendDocument();
 
   const setSelectedDocumentId = useCallback(
@@ -33,6 +33,7 @@ const DocumentRequestModal: React.FC<{}> = ({}) => {
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
             <Button title="Отправить" onPress={onSend} />
+            <Button title="Принять файл" onPress={onReadyToReceive} />
           </View>
         </View>
       </View>

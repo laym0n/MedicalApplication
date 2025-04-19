@@ -1,5 +1,4 @@
 import {getIceServers, wsBaseUrl} from '@app/constants';
-import {ProfileModel} from '@shared/api/types';
 import {createContext, RefObject, useCallback, useContext, useRef} from 'react';
 import {
   registerGlobals,
@@ -10,7 +9,7 @@ import {
 import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
 import {DocumentMetadata, P2PConnectionEstablishPayload} from './types';
 import {Document} from '@shared/db/entity/document';
-import {decode as atob} from 'base-64';
+import {decode as atob, encode as btoa} from 'base-64';
 
 registerGlobals();
 const baseURL = wsBaseUrl;
@@ -102,7 +101,9 @@ const useCreateNewRTCPeerConnection = () => {
     sendViaDataChannelRef,
   } = useWebRTCContext();
   const closeRTCPeerConnection = useCloseRtcPeerConnection();
-  return useCallback(async () => {
+  return useCallback(async (
+    onFileReceive?: (args: { pureFile: string; document: Document }) => void
+  ) => {
     const peerConstraints = {
       iceServers: await getIceServers(),
     };
@@ -120,13 +121,36 @@ const useCreateNewRTCPeerConnection = () => {
     newPeerConnection.addEventListener('icegatheringstatechange', () => {
       console.log('ICE Gathering State:', newPeerConnection.iceGatheringState);
     });
+    let receivedChunks: Uint8Array[] = [];
+    let receivedMeta: DocumentMetadata | null = null;
     newPeerConnection.addEventListener('datachannel', event => {
       let datachannel = event.channel;
       datachannel.addEventListener('open', event1 => {
         console.log(`📡 DataChannel открыт ${event1}`);
       });
-      datachannel.addEventListener('message', event1 => {
-        console.log(`📡 DataChannel сообщение ${JSON.stringify(event1)}`);
+      datachannel.addEventListener('message', messageReceivedEvent => {
+        const data = messageReceivedEvent.data;
+        if (typeof data === 'string') {
+          if (data === 'EOF') {
+            console.log('📥 Получен EOF');
+            const pureFile = uint8ArrayToBase64(receivedChunks);
+            const document = new Document();
+            document.name = receivedMeta!.name!;
+            document.mime = receivedMeta!.mime!;
+            onFileReceive!({pureFile, document});
+            receivedChunks = [];
+            receivedMeta = null;
+            closeRTCPeerConnection();
+            return;
+          }
+          receivedMeta = JSON.parse(data) as DocumentMetadata;
+          console.log('📥 Метаданные:', receivedMeta);
+        } else if (data instanceof ArrayBuffer) {
+          console.log('Receive chunk');
+          receivedChunks.push(new Uint8Array(data));
+        } else {
+          console.warn('⚠️ Неизвестный тип данных:', data);
+        }
       });
       datachannel.addEventListener('close', event1 => {
         console.log(`📡 DataChannel закрыт ${JSON.stringify(event1)}`);
@@ -172,18 +196,36 @@ const useCreateNewRTCPeerConnection = () => {
       });
     };
   }, [
+    rtcPeerConnectionRef,
+    dataChannelRef,
     sendViaDataChannelRef,
     sendViaWebSocketRef,
-    dataChannelRef,
-    rtcPeerConnectionRef,
+    closeRTCPeerConnection,
   ]);
 };
 
 const isActivePeerConnection = (peerConnection?: RTCPeerConnection) =>
   peerConnection && peerConnection.connectionState !== 'closed';
 
+function uint8ArrayToBase64(chunks: Uint8Array[]): string {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const bytes = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 const useConnectViaWebSocket = (
-  onOfferReceived: (profileModel: ProfileModel) => void,
+  onOfferReceived: (payload: P2PConnectionEstablishPayload) => void,
 ) => {
   const {
     webSocketRef,
@@ -207,12 +249,13 @@ const useConnectViaWebSocket = (
       try {
         console.log(data.type);
         switch (data.type) {
-          case 'offer': {
+          case 'offer_request':
+          case 'offer_upload': {
             if (isActivePeerConnection(rtcPeerConnectionRef.current)) {
               console.log('Not exists rtcPeerConnection for offer');
               return;
             }
-            onOfferReceived(data.sourceProfile!);
+            onOfferReceived(data);
             lastReceivedOfferRef.current = data;
             break;
           }
@@ -268,7 +311,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-export const useSendDataViaP2P = (onOfferReceived: () => void) => {
+export const useSendDataViaP2P = (onOfferReceived: (payload: P2PConnectionEstablishPayload) => void) => {
   const {
     lastReceivedOfferRef,
     sendViaWebSocketRef,
@@ -355,5 +398,57 @@ export const useSendDataViaP2P = (onOfferReceived: () => void) => {
       sendViaWebSocketRef,
     ],
   );
-  return {sendDocumentViaP2P, connectViaWebSocket};
+  const sendReadyToReceiveFile = useCallback(
+    async (
+      onFileReceive: (args: { pureFile: string; document: Document }) => void
+    ) => {
+      await createNewPeerConnection(onFileReceive);
+
+      const remoteDescription = new RTCSessionDescription(
+        lastReceivedOfferRef.current!.offer,
+      );
+      rtcPeerConnectionRef.current
+        ?.setRemoteDescription(remoteDescription)
+        .then(() => rtcPeerConnectionRef.current?.createAnswer())
+        .then(answer => {
+          rtcPeerConnectionRef.current?.setLocalDescription(answer);
+          return answer;
+        })
+        .then(answer =>
+          sendViaWebSocketRef.current!({
+            type: 'answer',
+            answer,
+            destinationSessionId: lastReceivedOfferRef.current!.sourceSessionId,
+          }),
+        )
+        .then(() => {
+          return new Promise<void>(resolve => {
+            if (
+              rtcPeerConnectionRef.current?.iceGatheringState === 'complete'
+            ) {
+              resolve();
+            } else {
+              const checkState = () => {
+                if (
+                  rtcPeerConnectionRef.current?.iceGatheringState === 'complete'
+                ) {
+                  rtcPeerConnectionRef.current?.removeEventListener(
+                    'icegatheringstatechange',
+                    checkState,
+                  );
+                  resolve();
+                }
+              };
+              rtcPeerConnectionRef.current?.addEventListener(
+                'icegatheringstatechange',
+                checkState,
+              );
+            }
+          });
+        })
+        .catch(console.error);
+    },
+    [createNewPeerConnection, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaWebSocketRef],
+  );
+  return {sendDocumentViaP2P, connectViaWebSocket, sendReadyToReceiveFile};
 };

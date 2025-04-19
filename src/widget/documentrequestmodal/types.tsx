@@ -1,7 +1,7 @@
 import {ProfileModel} from '@shared/api/types';
 
 export interface P2PConnectionEstablishPayload {
-  type: 'offer' | 'answer' | 'candidate';
+  type: 'offer_request' | 'offer_upload' | 'answer' | 'candidate';
   sourceSessionId?: string;
   sourceProfile?: ProfileModel;
   destinationSessionId?: string;
