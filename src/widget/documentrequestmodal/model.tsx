@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {useSendDataViaP2P} from './api';
+import {useP2PConnection} from './api';
 import {useCurrentUserProfileContext} from '@shared/lib/hooks';
 import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
@@ -24,8 +24,13 @@ export const useSendDocument = () => {
   }, [visible]);
 
   const handleReceivedOffer = useCallback(() => setVisible(true), []);
-  const {connectViaWebSocket, sendDocumentViaP2P, sendReadyToReceiveFile} =
-    useSendDataViaP2P(handleReceivedOffer);
+  const {
+    connectViaWebSocket,
+    sendDocumentViaP2P,
+    sendReadyToReceiveFile,
+    closeP2PConnection,
+    createNewPeerConnection,
+  } = useP2PConnection(handleReceivedOffer);
 
   const profile = useCurrentUserProfileContext();
   useEffect(() => {
@@ -48,23 +53,46 @@ export const useSendDocument = () => {
     if (!selectedDocument) {
       return;
     }
-    readDocument(selectedDocument)
-      .then(pureDocument => sendDocumentViaP2P(pureDocument!, selectedDocument))
-      .then(() => setVisible(false))
-      .catch(console.error);
-  }, [documents, readDocument, sendDocumentViaP2P]);
+    return (
+      readDocument(selectedDocument)
+        .then(async pureDocument => {
+          await createNewPeerConnection();
+          await sendDocumentViaP2P(pureDocument!, selectedDocument);
+        })
+        .then(() => setVisible(false))
+        .catch(console.error)
+    );
+  }, [createNewPeerConnection, documents, readDocument, sendDocumentViaP2P]);
   const onReadyToReceive = useCallback(() => {
-    sendReadyToReceiveFile(({pureFile, document}) => {
-      saveFile(pureFile, document).then(() =>
-        Toast.show({
-          type: 'success',
-          position: 'bottom',
-          text1: 'Файл успешно сохранён!',
-          visibilityTime: 3000,
-        }),
-      ).catch(console.error);
-    });
-  }, [saveFile, sendReadyToReceiveFile]);
+    const onDocumentRecived = ({
+      pureFile,
+      document,
+    }: {
+      pureFile: string;
+      document: Document;
+    }) => {
+      saveFile(pureFile, document)
+        .then(() =>
+          Toast.show({
+            type: 'success',
+            position: 'bottom',
+            text1: 'Файл успешно сохранён!',
+            visibilityTime: 3000,
+          }),
+        )
+        .then(() => closeP2PConnection())
+        .then(() => setVisible(false))
+        .catch(console.error);
+    };
+    return createNewPeerConnection(onDocumentRecived)
+      .then(() => sendReadyToReceiveFile())
+      .catch(console.error);
+  }, [
+    closeP2PConnection,
+    createNewPeerConnection,
+    saveFile,
+    sendReadyToReceiveFile,
+  ]);
   return {
     visible,
     documents,
