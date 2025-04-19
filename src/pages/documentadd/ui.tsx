@@ -2,43 +2,28 @@ import * as DocumentPicker from '@react-native-documents/picker';
 import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
 import 'react-native-get-random-values';
-import CryptoJS from 'crypto-js';
 import React, {useCallback, useState} from 'react';
 import {Alert, Button, Text, TextInput, View} from 'react-native';
-import RNFS from 'react-native-fs';
-import * as Keychain from 'react-native-keychain';
 import Toast from 'react-native-toast-message';
+import { useDocumentsModel } from '@shared/model/documentmodel';
 import { Document } from '@shared/db/entity/document';
 
 const DocumentAddScreen = () => {
   const [uri, setUri] = useState<string | undefined>(undefined);
   const [name, setName] = useState<string | undefined>(undefined);
+  const [mime, setMime] = useState<string | undefined>(undefined);
+  const {readFile, saveFile} = useDocumentsModel();
 
-  const saveFile = useCallback(async () => {
+  const handleSaveFile = useCallback(async () => {
     try {
-      if (!uri || !name) {
+      if (!uri || !name || !mime) {
         return;
       }
-
-      const fileContent = await RNFS.readFile(uri, 'base64');
-
-      const encryptionKey = CryptoJS.lib.WordArray.random(32).toString();
-      const fileId = name + '_' + Date.now();
-
-      const encrypted = CryptoJS.AES.encrypt(
-        fileContent,
-        encryptionKey,
-      ).toString();
-
-      const savePath = `${RNFS.DocumentDirectoryPath}/${fileId}.enc`;
-      await RNFS.writeFile(savePath, encrypted, 'utf8');
-
-      await Keychain.setGenericPassword(fileId, encryptionKey, {
-        service: 'file-encryption-keys',
-      });
-      const doc = new Document();
-      doc.name = fileId;
-      await doc.save();
+      const {pureFile} = await readFile(uri);
+      const document = new Document();
+      document.mime = mime;
+      document.name = name;
+      await saveFile(pureFile, document);
 
       Toast.show({
         type: 'success',
@@ -50,7 +35,7 @@ const DocumentAddScreen = () => {
       console.error('Ошибка:', err);
       Alert.alert('Ошибка', err.message || 'Что-то пошло не так');
     }
-  }, [name, uri]);
+  }, [mime, name, readFile, saveFile, uri]);
 
   const pickFile = useCallback(async () => {
     try {
@@ -60,9 +45,10 @@ const DocumentAddScreen = () => {
         return;
       }
 
-      const {uri: uriFile, name: nameFile} = res[0];
+      const {uri: uriFile, name: nameFile, type} = res[0];
       setUri(uriFile);
       setName(nameFile);
+      setMime(type!);
     } catch (err: any) {
       console.error('Ошибка при выборе файла:', err);
     }
@@ -91,7 +77,7 @@ const DocumentAddScreen = () => {
         )}
 
         <View>
-          <Button title="Сохранить" onPress={saveFile} disabled={!uri} />
+          <Button title="Сохранить" onPress={handleSaveFile} disabled={!uri} />
           <Button title="Отменить" onPress={cancel} />
         </View>
       </View>

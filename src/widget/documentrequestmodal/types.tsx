@@ -10,3 +10,8 @@ export interface P2PConnectionEstablishPayload {
   answer?: any;
   candidate?: any;
 }
+
+export interface DocumentMetadata {
+  mime: string;
+  name: string;
+}

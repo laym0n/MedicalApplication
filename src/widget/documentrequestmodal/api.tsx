@@ -14,7 +14,9 @@ import {
   RTCSessionDescription,
 } from 'react-native-webrtc';
 import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
-import { P2PConnectionEstablishPayload } from './types';
+import { DocumentMetadata, P2PConnectionEstablishPayload } from './types';
+import { Document } from '@shared/db/entity/document';
+import { decode as atob } from 'base-64';
 
 registerGlobals();
 const baseURL = wsBaseUrl;
@@ -226,8 +228,18 @@ const useConnectViaWebSocket = (
   return connectViaWebSocket;
 };
 
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryStr = atob(base64);
+  const len = binaryStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  return bytes;
+}
+
 export const useSendDataViaP2P = (
-  onOfferReceived: (profileModel: ProfileModel) => void,
+  onOfferReceived: () => void,
 ) => {
   const {
     lastReceivedOfferRef,
@@ -238,8 +250,8 @@ export const useSendDataViaP2P = (
   const connectViaWebSocket = useConnectViaWebSocket(onOfferReceived);
   const createNewPeerConnection = useCreateNewRTCPeerConnection();
 
-  const sendDataViaP2P = useCallback(
-    async (message: any) => {
+  const sendDocumentViaP2P = useCallback(
+    async (pureDocument: string, document: Document) => {
       await createNewPeerConnection();
 
       const remoteDescription = new RTCSessionDescription(
@@ -285,12 +297,24 @@ export const useSendDataViaP2P = (
           });
         })
         .then(() => {
-          sendViaDataChannelRef.current!(message);
+          sendViaDataChannelRef.current!(JSON.stringify({
+            mime: document.mime,
+            name: document.name,
+          } as DocumentMetadata));
+        })
+        .then(async () => {
+          const chunkSize = 16 * 1024 * 10;
+          const buffer = base64ToUint8Array(pureDocument);
+          for (let offset = 0; offset < buffer.length; offset += chunkSize) {
+            const chunk = buffer.slice(offset, Math.min(offset + chunkSize, buffer.length));
+            await sendViaDataChannelRef.current!(chunk);
+          }
+          sendViaDataChannelRef.current!('EOF');
         })
         // .then(() => rtcPeerConnectionRef.current?.close())
         .catch(console.error);
     },
     [createNewPeerConnection, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaDataChannelRef, sendViaWebSocketRef],
   );
-  return {sendDataViaP2P, connectViaWebSocket};
+  return {sendDocumentViaP2P, connectViaWebSocket};
 };

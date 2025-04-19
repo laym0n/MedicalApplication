@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {Document} from '@shared/db/entity/document';
+import { useDocumentsModel } from '@shared/model/documentmodel';
 import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -13,6 +14,17 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+const DocumentCard: React.FC<{document: Document, onDelete: (id: number) => void}> = ({document, onDelete}) => {
+  const handleDeletePress = useCallback(() => onDelete(document.id), [document.id, onDelete]);
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardText}>{document.name}</Text>
+      <Text style={styles.cardText}>{document.mime}</Text>
+      <Button title="Удалить" onPress={handleDeletePress} />
+    </View>
+  );
+};
+
 const DocumentsScreen = () => {
   const navigation = useNavigation();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -24,6 +36,7 @@ const DocumentsScreen = () => {
     () => navigation.navigate('DocumentAdd'),
     [navigation],
   );
+  const {deleteDocumentById} = useDocumentsModel();
 
   return (
     <Layout>
@@ -50,11 +63,7 @@ const DocumentsScreen = () => {
 
         {/* Центр экрана с карточками документов */}
         <ScrollView contentContainerStyle={styles.cardsContainer}>
-          {documents.map(doc => (
-            <View key={doc.id} style={styles.card}>
-              <Text style={styles.cardText}>{doc.name}</Text>
-            </View>
-          ))}
+          {documents.map(doc => <DocumentCard key={doc.id} onDelete={deleteDocumentById} document={doc}/>)}
         </ScrollView>
 
         {/* Кнопка добавления нового документа */}

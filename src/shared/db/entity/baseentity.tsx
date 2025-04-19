@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  VersionColumn,
   BaseEntity as TypeOrmBaseEntity,
 } from 'typeorm/browser';
 
@@ -12,6 +13,9 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
 
   @CreateDateColumn({name: 'created_at'})
   createdAt!: string;
+
+  @VersionColumn({name: 'version'})
+  version!: number;
 
   @UpdateDateColumn({name: 'updated_at'})
   updatedAt!: string;

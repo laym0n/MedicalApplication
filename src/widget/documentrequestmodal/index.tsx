@@ -1,29 +1,19 @@
-import {ProfileModel} from '@shared/api/types';
-import {useCurrentUserProfileContext} from '@shared/lib/hooks';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback} from 'react';
 import {Button, Modal, StyleSheet, Text, View} from 'react-native';
-import {useSendDataViaP2P, WebRTCContextProvider} from './api';
+import {Picker} from '@react-native-picker/picker';
+import {WebRTCContextProvider} from './api';
+import {useSendDocument} from './model';
 
 const DocumentRequestModal: React.FC<{}> = ({}) => {
-  const [visible, setVisible] = useState<boolean>(false);
-  const profile = useCurrentUserProfileContext();
+  const {documents, onIgnore, onSend, visible, selectedDocumentIdRef} =
+    useSendDocument();
 
-  const handleReceivedOffer = useCallback(
-    (_: ProfileModel) => setVisible(true),
-    [],
+  const setSelectedDocumentId = useCallback(
+    (newSelectedDocumentId: any) =>
+      (selectedDocumentIdRef.current = newSelectedDocumentId),
+    [selectedDocumentIdRef],
   );
-  const {connectViaWebSocket, sendDataViaP2P} =
-    useSendDataViaP2P(handleReceivedOffer);
 
-  useEffect(() => {
-    if (!profile) {
-      return;
-    }
-    connectViaWebSocket();
-  }, [connectViaWebSocket, profile]);
-
-  const onIgnore = useCallback(() => setVisible(false), []);
-  const onSend = useCallback(() => sendDataViaP2P('message').then(() => setVisible(false)), [sendDataViaP2P]);
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -32,6 +22,13 @@ const DocumentRequestModal: React.FC<{}> = ({}) => {
           <Text style={styles.description}>
             Пожалуйста, выберите документ для отправки.
           </Text>
+          <Picker
+            onValueChange={itemValue => setSelectedDocumentId(itemValue)}
+            style={styles.picker}>
+            {documents.map(doc => (
+              <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
+            ))}
+          </Picker>
 
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
@@ -84,6 +81,9 @@ const styles = StyleSheet.create({
   },
   pickButtonText: {
     color: '#333',
+  },
+  picker: {
+    marginBottom: 20,
   },
   buttons: {
     flexDirection: 'row',
