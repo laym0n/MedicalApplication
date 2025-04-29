@@ -51,8 +51,8 @@ const DocumentsScreen = () => {
           <TouchableOpacity style={styles.iconContainer}>
             {/* <Ionicons name="person-circle" size={30} color="black" /> */}
             <Button
-              title="Go to Jane's profile"
-              onPress={() => navigation.navigate('Auth', {name: 'Jane'})}
+              title="Sign in"
+              onPress={() => navigation.navigate('Auth')}
             />
             {/* <Button onTouchEnd={() => navigation.navigate('Auth')}>
             Авторизация

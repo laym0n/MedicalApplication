@@ -1,4 +1,3 @@
-import { useAxiosInstance } from '@shared/lib/hooks';
 import { useMutation } from '@tanstack/react-query';
 import {
   ProfileInfoParams,
@@ -6,6 +5,7 @@ import {
   ProfilesSearchRequestDto,
   ProfilesSearchResponseDto,
 } from './types';
+import { useAxiosInstance } from '@app/context/httpclient';
 
 export const useGetProfile = (
   setProfile: (profileModel: ProfileModel) => void

@@ -1,7 +1,7 @@
 import {httpBaseUrl} from '@app/constants';
 import CookieManager from '@react-native-cookies/cookies';
 import axios, {AxiosInstance} from 'axios';
-import {createContext} from 'react';
+import {createContext, useContext} from 'react';
 
 const baseURL = httpBaseUrl;
 export const axiosInstance = axios.create({
@@ -38,3 +38,4 @@ axiosInstance.interceptors.response.use(
   },
 );
 export const AxiosContext = createContext<AxiosInstance>(axiosInstance);
+export const useAxiosInstance = () => useContext<AxiosInstance>(AxiosContext);

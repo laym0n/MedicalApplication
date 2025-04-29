@@ -8,7 +8,8 @@ import {
   View,
 } from 'react-native';
 import useSignInCall from './api';
-// import { Ionicons } from '@expo/vector-icons';
+import {useCurrentUserProfileContext} from '@app/context/profilecontext';
+import {useGetProfile} from '@shared/api/hooks';
 
 const AuthScreen: FC<{isLogin: boolean}> = ({isLogin}) => {
   const navigation = useNavigation();
@@ -16,14 +17,21 @@ const AuthScreen: FC<{isLogin: boolean}> = ({isLogin}) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const {mutateAsync: signInAsync} = useSignInCall();
+  const currentUserProfile = useCurrentUserProfileContext();
+  const {mutateAsync: getProfileAsync} = useGetProfile(
+    currentUserProfile!.setCurrentUserProfile,
+  );
 
   const handleAuth = useCallback(() => {
     signInAsync({
       login: login,
       password: password,
       rememberMe: true,
-    }).catch(console.error);
-  }, [login, password, signInAsync]);
+    })
+      .then(() => getProfileAsync())
+      .then(() => navigation.goBack())
+      .catch(console.error);
+  }, [getProfileAsync, login, navigation, password, signInAsync]);
 
   return (
     <View style={styles.container}>

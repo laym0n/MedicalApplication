@@ -1,11 +1,11 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useP2PConnection} from './wsapi';
-import {useCurrentUserProfileContext} from '@shared/lib/hooks';
 import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import Toast from 'react-native-toast-message';
 import { useUpdateConsultationPrescription } from './api';
 import { PrescriptionPayload } from './types';
+import { useCurrentUserProfileContext } from '@app/context/profilecontext';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -35,13 +35,13 @@ export const useSendDocument = () => {
     sendReadyToReceivePrescription,
   } = useP2PConnection(handleReceivedOffer);
 
-  const profile = useCurrentUserProfileContext();
+  const currentUserContext = useCurrentUserProfileContext();
   useEffect(() => {
-    if (!profile) {
+    if (!currentUserContext?.currentUserProfile) {
       return;
     }
     connectViaWebSocket();
-  }, [connectViaWebSocket, profile]);
+  }, [connectViaWebSocket, currentUserContext?.currentUserProfile]);
 
   const onIgnore = useCallback(() => setVisible(false), []);
 

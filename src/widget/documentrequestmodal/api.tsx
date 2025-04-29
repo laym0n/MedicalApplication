@@ -1,6 +1,6 @@
-import {useAxiosInstance} from '@shared/lib/hooks';
 import {useMutation} from '@tanstack/react-query';
 import {ConsultationPrescriptionDto} from './types';
+import { useAxiosInstance } from '@app/context/httpclient';
 
 interface UpdateConsultationPrescriptionDto {
   consultationId: string;

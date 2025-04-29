@@ -1,5 +1,6 @@
+import { useAxiosInstance } from '@app/context/httpclient';
 import {AuthenticationRequest} from '@shared/api/types';
-import {useAxiosInstance} from '@shared/lib/hooks';
+
 import {useMutation} from '@tanstack/react-query';
 
 const useSignInCall = () => {
