@@ -3,14 +3,16 @@ import {useP2PConnection} from './wsapi';
 import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import Toast from 'react-native-toast-message';
-import { useUpdateConsultationPrescription } from './api';
-import { PrescriptionPayload } from './types';
-import { useCurrentUserProfileContext } from '@app/context/profilecontext';
+import {useUpdateConsultationPrescription} from './api';
+import {P2PConnectionEstablishPayload, PrescriptionPayload} from './types';
+import {useCurrentUserProfileContext} from '@app/context/profilecontext';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [documents, setDocuments] = useState<Document[]>([]);
   const selectedDocumentIdRef = useRef<number | undefined>(undefined);
+  const [offerPayload, setOfferPayload] =
+    useState<P2PConnectionEstablishPayload | null>(null);
 
   useEffect(() => {
     if (!visible) {
@@ -25,7 +27,19 @@ export const useSendDocument = () => {
     });
   }, [visible]);
 
-  const handleReceivedOffer = useCallback(() => setVisible(true), []);
+  useEffect(() => {
+    if (!visible) {
+      setOfferPayload(null);
+    }
+  }, [visible]);
+
+  const handleReceivedOffer = useCallback(
+    (newOfferPayload: P2PConnectionEstablishPayload) => {
+      setVisible(true);
+      setOfferPayload(newOfferPayload);
+    },
+    [],
+  );
   const {
     connectViaWebSocket,
     sendDocumentViaP2P,
@@ -56,15 +70,13 @@ export const useSendDocument = () => {
     if (!selectedDocument) {
       return;
     }
-    return (
-      readDocument(selectedDocument)
-        .then(async pureDocument => {
-          await createNewPeerConnection();
-          await sendDocumentViaP2P(pureDocument!, selectedDocument);
-        })
-        .then(() => setVisible(false))
-        .catch(console.error)
-    );
+    return readDocument(selectedDocument)
+      .then(async pureDocument => {
+        await createNewPeerConnection();
+        await sendDocumentViaP2P(pureDocument!, selectedDocument);
+      })
+      .then(() => setVisible(false))
+      .catch(console.error);
   }, [createNewPeerConnection, documents, readDocument, sendDocumentViaP2P]);
   const onReadyToReceiveFile = useCallback(() => {
     const onDocumentRecived = ({
@@ -96,20 +108,27 @@ export const useSendDocument = () => {
     saveFile,
     sendReadyToReceiveFile,
   ]);
-  const {mutateAsync: updateConsultationPrescriptionAsync} = useUpdateConsultationPrescription();
+  const {mutateAsync: updateConsultationPrescriptionAsync} =
+    useUpdateConsultationPrescription();
   const onReadyToReceivePrescription = useCallback(() => {
     const onPrescriptionRecived = ({
       prescription,
     }: {
       prescription: PrescriptionPayload;
     }) => {
-      updateConsultationPrescriptionAsync({consultationId: prescription.consultationId, prescription: {prescription: prescription.prescription}})
-        .then(() => setVisible(false));
+      updateConsultationPrescriptionAsync({
+        consultationId: prescription.consultationId,
+        prescription: {prescription: prescription.prescription},
+      }).then(() => setVisible(false));
     };
     return createNewPeerConnection(undefined, onPrescriptionRecived)
       .then(() => sendReadyToReceivePrescription())
       .catch(console.error);
-  }, [createNewPeerConnection, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
+  }, [
+    createNewPeerConnection,
+    sendReadyToReceivePrescription,
+    updateConsultationPrescriptionAsync,
+  ]);
   return {
     visible,
     documents,
@@ -118,5 +137,6 @@ export const useSendDocument = () => {
     onReadyToReceiveFile,
     onReadyToReceivePrescription,
     selectedDocumentIdRef,
+    offerPayload,
   };
 };
