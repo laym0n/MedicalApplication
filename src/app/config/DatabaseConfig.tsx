@@ -1,15 +1,16 @@
 import {DataSource} from 'typeorm';
 import {Document} from '@shared/db/entity/document';
 import SQLite from 'react-native-sqlite-storage';
+import { Consultation } from '@shared/db/entity/consultation';
 
 SQLite.enablePromise(true);
 
 const AppDataSource = new DataSource({
   type: 'react-native',
-  database: 'myapp2.db',
+  database: 'myapp3.db',
   location: 'default',
   driver: SQLite,
-  entities: [Document],
+  entities: [Document, Consultation],
   synchronize: true, // Только в dev!
 });
 

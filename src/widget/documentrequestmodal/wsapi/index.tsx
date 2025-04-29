@@ -126,11 +126,15 @@ export const useP2PConnection = (
   const sendReadyToReceiveFile = useCallback(() => {
     return sendAnswer();
   }, [sendAnswer]);
+  const sendReadyToReceivePrescription = useCallback(() => {
+    return sendAnswer();
+  }, [sendAnswer]);
   return {
     connectViaWebSocket,
     createNewPeerConnection,
     sendDocumentViaP2P,
     sendReadyToReceiveFile,
     closeP2PConnection,
+    sendReadyToReceivePrescription,
   };
 };

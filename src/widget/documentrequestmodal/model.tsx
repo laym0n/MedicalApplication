@@ -1,9 +1,11 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {useP2PConnection} from './api';
+import {useP2PConnection} from './wsapi';
 import {useCurrentUserProfileContext} from '@shared/lib/hooks';
 import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import Toast from 'react-native-toast-message';
+import { useUpdateConsultationPrescription } from './api';
+import { PrescriptionPayload } from './types';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -30,6 +32,7 @@ export const useSendDocument = () => {
     sendReadyToReceiveFile,
     closeP2PConnection,
     createNewPeerConnection,
+    sendReadyToReceivePrescription,
   } = useP2PConnection(handleReceivedOffer);
 
   const profile = useCurrentUserProfileContext();
@@ -63,7 +66,7 @@ export const useSendDocument = () => {
         .catch(console.error)
     );
   }, [createNewPeerConnection, documents, readDocument, sendDocumentViaP2P]);
-  const onReadyToReceive = useCallback(() => {
+  const onReadyToReceiveFile = useCallback(() => {
     const onDocumentRecived = ({
       pureFile,
       document,
@@ -93,12 +96,27 @@ export const useSendDocument = () => {
     saveFile,
     sendReadyToReceiveFile,
   ]);
+  const {mutateAsync: updateConsultationPrescriptionAsync} = useUpdateConsultationPrescription();
+  const onReadyToReceivePrescription = useCallback(() => {
+    const onPrescriptionRecived = ({
+      prescription,
+    }: {
+      prescription: PrescriptionPayload;
+    }) => {
+      updateConsultationPrescriptionAsync({consultationId: prescription.consultationId, prescription: {prescription: prescription.prescription}})
+        .then(() => setVisible(false));
+    };
+    return createNewPeerConnection(undefined, onPrescriptionRecived)
+      .then(() => sendReadyToReceivePrescription())
+      .catch(console.error);
+  }, [createNewPeerConnection, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
   return {
     visible,
     documents,
     onIgnore,
     onSend,
-    onReadyToReceive,
+    onReadyToReceiveFile,
+    onReadyToReceivePrescription,
     selectedDocumentIdRef,
   };
 };

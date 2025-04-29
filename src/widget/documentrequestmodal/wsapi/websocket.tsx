@@ -42,6 +42,7 @@ export const useConnectViaWebSocket = (
         console.log(data.type);
         switch (data.type) {
           case 'offer_request':
+          case 'offer_prescription':
           case 'offer_upload': {
             if (isActivePeerConnection(rtcPeerConnectionRef.current)) {
               console.log('Not exists rtcPeerConnection for offer');

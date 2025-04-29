@@ -21,7 +21,7 @@
                     {
                         "name": "userId",
                         "in": "query",
-                        "required": true,
+                        "required": false,
                         "schema": {
                             "type": "string",
                             "format": "uuid"
@@ -207,6 +207,40 @@
                     "Authentication"
                 ],
                 "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/consultation/{id}/prescription": {
+            "patch": {
+                "tags": [
+                    "consultation-controller"
+                ],
+                "operationId": "create_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConsultationPrescriptionDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -549,9 +583,6 @@
                     },
                     "consultationSlot": {
                         "$ref": "#/components/schemas/ConsultationSlotModel"
-                    },
-                    "consultationResult": {
-                        "type": "string"
                     }
                 }
             },
@@ -572,6 +603,14 @@
                     "login",
                     "password"
                 ]
+            },
+            "ConsultationPrescriptionDto": {
+                "type": "object",
+                "properties": {
+                    "prescription": {
+                        "type": "string"
+                    }
+                }
             },
             "ConsultationSlotInfoDto": {
                 "type": "object",

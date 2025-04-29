@@ -100,6 +100,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/consultation/{id}/prescription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["create_2"];
+        trace?: never;
+    };
     "/consultationslot/{id}": {
         parameters: {
             query?: never;
@@ -228,12 +244,14 @@ export interface components {
             /** Format: date-time */
             startDateTime?: string;
             consultationSlot?: components["schemas"]["ConsultationSlotModel"];
-            consultationResult?: string;
         };
         AuthenticationRequest: {
             login: string;
             password: string;
             rememberMe?: boolean;
+        };
+        ConsultationPrescriptionDto: {
+            prescription?: string;
         };
         ConsultationSlotInfoDto: {
             consultationSlotModel?: components["schemas"]["ConsultationSlotModel"];
@@ -256,8 +274,8 @@ export type $defs = Record<string, never>;
 export interface operations {
     getProfileInfo: {
         parameters: {
-            query: {
-                userId: string;
+            query?: {
+                userId?: string;
             };
             header?: never;
             path?: never;
@@ -422,6 +440,30 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultationPrescriptionDto"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

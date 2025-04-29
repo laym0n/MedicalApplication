@@ -1,7 +1,8 @@
+import { components } from '@shared/api/schema';
 import {ProfileModel} from '@shared/api/types';
 
 export interface P2PConnectionEstablishPayload {
-  type: 'offer_request' | 'offer_upload' | 'answer' | 'candidate';
+  type: 'offer_request' | 'offer_upload' | 'offer_prescription' | 'answer' | 'candidate';
   sourceSessionId?: string;
   sourceProfile?: ProfileModel;
   destinationSessionId?: string;
@@ -11,7 +12,14 @@ export interface P2PConnectionEstablishPayload {
   candidate?: any;
 }
 
+export interface PrescriptionPayload {
+  consultationId: string;
+  prescription: string;
+}
+
 export interface DocumentMetadata {
   mime: string;
   name: string;
 }
+
+export type ConsultationPrescriptionDto = components['schemas']['ConsultationPrescriptionDto'];

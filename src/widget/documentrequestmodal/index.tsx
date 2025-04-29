@@ -1,11 +1,11 @@
 import React, {useCallback} from 'react';
 import {Button, Modal, StyleSheet, Text, View} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {WebRTCContextProvider} from './api';
+import {WebRTCContextProvider} from './wsapi';
 import {useSendDocument} from './model';
 
 const DocumentRequestModal: React.FC<{}> = ({}) => {
-  const {documents, onIgnore, onSend, visible, selectedDocumentIdRef, onReadyToReceive} =
+  const {documents, onIgnore, onSend, visible, selectedDocumentIdRef, onReadyToReceiveFile, onReadyToReceivePrescription} =
     useSendDocument();
 
   const setSelectedDocumentId = useCallback(
@@ -33,7 +33,8 @@ const DocumentRequestModal: React.FC<{}> = ({}) => {
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
             <Button title="Отправить" onPress={onSend} />
-            <Button title="Принять файл" onPress={onReadyToReceive} />
+            <Button title="Принять файл" onPress={onReadyToReceiveFile} />
+            <Button title="Получить назначение консультации" onPress={onReadyToReceivePrescription} />
           </View>
         </View>
       </View>

@@ -1,7 +1,7 @@
 import {getIceServers} from '@app/constants';
 import {useCallback} from 'react';
 import {registerGlobals, RTCPeerConnection} from 'react-native-webrtc';
-import {DocumentMetadata} from '../types';
+import {DocumentMetadata, PrescriptionPayload} from '../types';
 import {Document} from '@shared/db/entity/document';
 import {useWebRTCContext} from './context';
 import {uint8ArrayToBase64} from './utils';
@@ -41,11 +41,13 @@ export const useCreateNewRTCPeerConnection = () => {
     rtcPeerConnectionRef,
     dataChannelRef,
     sendViaDataChannelRef,
+    lastReceivedOfferRef,
   } = useWebRTCContext();
   const closeRTCPeerConnection = useCloseRtcPeerConnection();
   return useCallback(
     async (
       onFileReceive?: (args: {pureFile: string; document: Document}) => void,
+      onPrescriptionReceive?: (args: {prescription: PrescriptionPayload}) => void,
     ) => {
       const peerConstraints = {
         iceServers: await getIceServers(),
@@ -90,6 +92,9 @@ export const useCreateNewRTCPeerConnection = () => {
           console.log(`📡 DataChannel открыт ${openEvent}`);
         });
         datachannel.addEventListener('message', messageReceivedEvent => {
+          if (lastReceivedOfferRef.current?.type !== 'offer_upload') {
+            return;
+          }
           const data = messageReceivedEvent.data;
           if (typeof data === 'string') {
             if (data === 'EOF') {
@@ -111,6 +116,17 @@ export const useCreateNewRTCPeerConnection = () => {
           } else {
             console.warn('⚠️ Неизвестный тип данных:', data);
           }
+        });
+        datachannel.addEventListener('message', messageReceivedEvent => {
+          if (lastReceivedOfferRef.current?.type !== 'offer_prescription') {
+            return;
+          }
+          const data = messageReceivedEvent.data;
+          if (typeof data !== 'string') {
+            return;
+          }
+          const prescription = JSON.parse(data) as PrescriptionPayload;
+          onPrescriptionReceive!({prescription});
         });
         datachannel.addEventListener('close', closeEvent => {
           console.log(`📡 DataChannel закрыт ${JSON.stringify(closeEvent)}`);
@@ -142,12 +158,6 @@ export const useCreateNewRTCPeerConnection = () => {
         });
       };
     },
-    [
-      closeRTCPeerConnection,
-      dataChannelRef,
-      rtcPeerConnectionRef,
-      sendViaDataChannelRef,
-      sendViaWebSocketRef,
-    ],
+    [closeRTCPeerConnection, dataChannelRef, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaDataChannelRef, sendViaWebSocketRef],
   );
 };
