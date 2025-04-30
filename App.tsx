@@ -5,7 +5,7 @@ import {AxiosContext, axiosInstance} from '@app/context/httpclient';
 import { CurrentUserProfileContextProvider } from '@app/context/profilecontext';
 import {LoginScreen} from '@pages/auth/ui';
 import DocumentAddScreen from '@pages/documentadd/ui';
-import DocumentsScreen from '@pages/documents/ui';
+import HomeScreen from '@pages/home';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
@@ -25,8 +25,8 @@ function App(): React.JSX.Element {
           <AxiosContext.Provider value={axiosInstance}>
             <CurrentUserProfileContextProvider>
               <NavigationContainer>
-                <Stack.Navigator initialRouteName="Documents">
-                  <Stack.Screen name="Documents" component={DocumentsScreen} />
+                <Stack.Navigator initialRouteName="Home">
+                <Stack.Screen name="Home" component={HomeScreen} />
                   <Stack.Screen
                     name="DocumentAdd"
                     component={DocumentAddScreen}
