@@ -42,6 +42,7 @@ export const useSendDocument = () => {
   );
   const {
     connectViaWebSocket,
+    disconnectViaWebSocket,
     sendDocumentViaP2P,
     sendReadyToReceiveFile,
     closeP2PConnection,
@@ -52,10 +53,11 @@ export const useSendDocument = () => {
   const currentUserContext = useCurrentUserProfileContext();
   useEffect(() => {
     if (!currentUserContext?.currentUserProfile) {
+      disconnectViaWebSocket();
       return;
     }
     connectViaWebSocket();
-  }, [connectViaWebSocket, currentUserContext?.currentUserProfile]);
+  }, [connectViaWebSocket, currentUserContext?.currentUserProfile, disconnectViaWebSocket]);
 
   const onIgnore = useCallback(() => setVisible(false), []);
 

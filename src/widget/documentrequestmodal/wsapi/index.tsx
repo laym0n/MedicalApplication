@@ -49,7 +49,7 @@ export const useP2PConnection = (
     sendViaDataChannelRef,
     rtcPeerConnectionRef,
   } = useWebRTCContext();
-  const connectViaWebSocket = useConnectViaWebSocket(onOfferReceived);
+  const {connectViaWebSocket, disconnectViaWebSocket} = useConnectViaWebSocket(onOfferReceived);
   const createNewPeerConnection = useCreateNewRTCPeerConnection();
   const closeP2PConnection = useCloseRtcPeerConnection();
 
@@ -131,6 +131,7 @@ export const useP2PConnection = (
   }, [sendAnswer]);
   return {
     connectViaWebSocket,
+    disconnectViaWebSocket,
     createNewPeerConnection,
     sendDocumentViaP2P,
     sendReadyToReceiveFile,

@@ -1,7 +1,53 @@
 import {useCurrentUserProfileContext} from '@app/context/profilecontext';
+import {useNavigation} from '@react-navigation/native';
 import {useGetProfile} from '@shared/api/hooks';
-import React, {ReactNode, useEffect} from 'react';
+import React, {ReactNode, useCallback, useEffect, useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Menu} from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import useSignOutCall from './api';
+
+const NonAuthneticatedControls: React.FC = () => {
+  const navigation = useNavigation();
+  const onPressSignIn = useCallback(
+    () => navigation.navigate('Auth'),
+    [navigation],
+  );
+  return (
+    <TouchableOpacity onPress={onPressSignIn}>
+      <Text style={styles.loginText}>Войти</Text>
+    </TouchableOpacity>
+  );
+};
+
+const AuthneticatedControls: React.FC = () => {
+  const [visible, setVisible] = useState(false);
+  const {mutate: signOutCall} = useSignOutCall();
+
+  const openMenu = useCallback(() => setVisible(true), []);
+  const closeMenu = useCallback(() => setVisible(false), []);
+
+  const currentUserContext = useCurrentUserProfileContext();
+
+  const onSignOutPress = useCallback(() => {
+    signOutCall();
+    closeMenu();
+    currentUserContext!.setCurrentUserProfile(null);
+  }, [closeMenu, currentUserContext, signOutCall]);
+  return (
+    <Menu
+      visible={visible}
+      onDismiss={closeMenu}
+      anchor={
+        <TouchableOpacity onPress={openMenu}>
+          <Ionicons name="person-circle-outline" size={32} color="black" />
+        </TouchableOpacity>
+      }>
+      <Menu.Item onPress={onSignOutPress} title="Выход" />
+    </Menu>
+  );
+};
 
 const Layout: React.FC<{children: ReactNode}> = ({children}) => {
   const currentUserContext = useCurrentUserProfileContext();
@@ -11,13 +57,47 @@ const Layout: React.FC<{children: ReactNode}> = ({children}) => {
   useEffect(() => {
     getProfileAsync();
   }, [getProfileAsync]);
+  const isAuthenticated = currentUserContext?.currentUserProfile;
 
   return (
     <>
-      {children}
+      <View style={styles.container}>
+        <View style={styles.header}>
+          {isAuthenticated ? (
+            <AuthneticatedControls />
+          ) : (
+            <NonAuthneticatedControls />
+          )}
+        </View>
+
+        <View style={styles.content}>{children}</View>
+      </View>
       <Toast />
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {flex: 1},
+  header: {
+    height: 60,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f2f2f2',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  loginText: {
+    fontSize: 16,
+    color: '#007aff',
+  },
+  content: {
+    flex: 1,
+  },
+});
 
 export default Layout;

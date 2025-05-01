@@ -2,7 +2,7 @@ import '@app/config/DatabaseConfig';
 import {initDatabase} from '@app/config/DatabaseConfig';
 import '@app/config/ReactotronConfig';
 import {AxiosContext, axiosInstance} from '@app/context/httpclient';
-import { CurrentUserProfileContextProvider } from '@app/context/profilecontext';
+import {CurrentUserProfileContextProvider} from '@app/context/profilecontext';
 import {LoginScreen} from '@pages/auth/ui';
 import DocumentAddScreen from '@pages/documentadd/ui';
 import HomeScreen from '@pages/home';
@@ -11,6 +11,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import React from 'react';
 import ErrorBoundary from 'react-native-error-boundary';
+import {PaperProvider} from 'react-native-paper';
 import 'reflect-metadata';
 
 const Stack = createStackNavigator();
@@ -21,22 +22,24 @@ function App(): React.JSX.Element {
   return (
     <React.StrictMode>
       <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <AxiosContext.Provider value={axiosInstance}>
-            <CurrentUserProfileContextProvider>
-              <NavigationContainer>
-                <Stack.Navigator initialRouteName="Home">
-                <Stack.Screen name="Home" component={HomeScreen} />
-                  <Stack.Screen
-                    name="DocumentAdd"
-                    component={DocumentAddScreen}
-                  />
-                  <Stack.Screen name="Auth" component={LoginScreen} />
-                </Stack.Navigator>
-              </NavigationContainer>
-            </CurrentUserProfileContextProvider>
-          </AxiosContext.Provider>
-        </QueryClientProvider>
+        <PaperProvider>
+          <QueryClientProvider client={queryClient}>
+            <AxiosContext.Provider value={axiosInstance}>
+              <CurrentUserProfileContextProvider>
+                <NavigationContainer>
+                  <Stack.Navigator initialRouteName="Home">
+                    <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen
+                      name="DocumentAdd"
+                      component={DocumentAddScreen}
+                    />
+                    <Stack.Screen name="Auth" component={LoginScreen} />
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </CurrentUserProfileContextProvider>
+            </AxiosContext.Provider>
+          </QueryClientProvider>
+        </PaperProvider>
       </ErrorBoundary>
     </React.StrictMode>
   );

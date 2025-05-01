@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 const DocumentCard: React.FC<{document: Document, onDelete: (id: number) => void}> = ({document, onDelete}) => {
   const handleDeletePress = useCallback(() => onDelete(document.id), [document.id, onDelete]);
@@ -42,31 +41,10 @@ const DocumentsScreen = () => {
     <Layout>
       <DocumentRequestNotification />
       <View style={styles.container}>
-        {/* Верхний ряд с иконками */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.iconContainer}>
-            {/* <Ionicons name="notifications" size={30} color="black" /> */}
-            <Icon name="user" size={30} color="#000" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconContainer}>
-            {/* <Ionicons name="person-circle" size={30} color="black" /> */}
-            <Button
-              title="Sign in"
-              onPress={() => navigation.navigate('Auth')}
-            />
-            {/* <Button onTouchEnd={() => navigation.navigate('Auth')}>
-            Авторизация
-          </Button> */}
-            <Icon name="bell" size={30} color="#000" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Центр экрана с карточками документов */}
         <ScrollView contentContainerStyle={styles.cardsContainer}>
           {documents.map(doc => <DocumentCard key={doc.id} onDelete={deleteDocumentById} document={doc}/>)}
         </ScrollView>
 
-        {/* Кнопка добавления нового документа */}
         <TouchableOpacity style={styles.addButton}>
           <Text style={styles.addButtonText} onPress={handleAddNewDocument}>
             Добавить новый документ
@@ -77,7 +55,6 @@ const DocumentsScreen = () => {
   );
 };
 
-// Стили для компонентов
 const styles = StyleSheet.create({
   container: {
     flex: 1,

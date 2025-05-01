@@ -2,7 +2,7 @@ import {useCallback} from 'react';
 import {RTCIceCandidate, RTCPeerConnection} from 'react-native-webrtc';
 import {P2PConnectionEstablishPayload} from '../types';
 import {useWebRTCContext} from './context';
-import { wsBaseUrl } from '@app/constants';
+import {wsBaseUrl} from '@app/constants';
 
 const baseURL = wsBaseUrl;
 const rtcPeerConnectionActiveStates = new Set<string>([
@@ -29,6 +29,9 @@ export const useConnectViaWebSocket = (
     const newWebSocket = new WebSocket(baseURL + '/p2p-signaling');
     newWebSocket.addEventListener('open', () => {
       console.log('open connection');
+    });
+    newWebSocket.addEventListener('close', () => {
+      console.log('close connection');
     });
     newWebSocket.addEventListener('error', e => {
       console.log(e);
@@ -90,5 +93,13 @@ export const useConnectViaWebSocket = (
     sendViaWebSocketRef,
     webSocketRef,
   ]);
-  return connectViaWebSocket;
+  const disconnectViaWebSocket = useCallback(() => {
+    const currentWebSocket = webSocketRef.current;
+    if (!currentWebSocket) {
+      return;
+    }
+    currentWebSocket.close();
+    webSocketRef.current = undefined;
+  }, [webSocketRef]);
+  return {connectViaWebSocket, disconnectViaWebSocket};
 };
