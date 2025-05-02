@@ -1,11 +1,8 @@
 import {useMutation} from '@tanstack/react-query';
-import {BlockchainRecord, ConsultationPrescriptionDto} from './types';
+import {BlockchainRecord} from './types';
 import {useAxiosInstance} from '@app/context/httpclient';
+import { UpdateConsultationPrescriptionDto } from '@shared/api/types';
 
-interface UpdateConsultationPrescriptionDto {
-  consultationId: string;
-  prescription: ConsultationPrescriptionDto;
-}
 
 export const useUpdateConsultationPrescription = () => {
   const axiosInstance = useAxiosInstance();

@@ -1,4 +1,4 @@
-import type { components, operations } from './schema';
+import type {components, operations} from './schema';
 
 export type AuthenticationRequest =
   components['schemas']['AuthenticationRequest'];
@@ -13,3 +13,9 @@ export type ProfilesSearchResponseDto =
   components['schemas']['ModelsResponseDtoProfileModel'];
 
 export type ConsultationModel = components['schemas']['ConsultationModel'];
+
+export type ConsultationPrescriptionDto = components['schemas']['ConsultationPrescriptionDto'];
+export type UpdateConsultationPrescriptionDto = {
+  consultationId: string;
+  prescription: ConsultationPrescriptionDto;
+};

@@ -1,9 +1,14 @@
 import '@app/config/DatabaseConfig';
 import {initDatabase} from '@app/config/DatabaseConfig';
 import '@app/config/ReactotronConfig';
+import {
+  BlockChainAxiosContext,
+  blockChainAxiosInstance,
+} from '@app/context/blockchainclient';
 import {AxiosContext, axiosInstance} from '@app/context/httpclient';
 import {CurrentUserProfileContextProvider} from '@app/context/profilecontext';
 import {LoginScreen} from '@pages/auth/ui';
+import ConsultationViewScreen from '@pages/consultation/ui';
 import DocumentViewScreen from '@pages/document/ui';
 import DocumentAddScreen from '@pages/documentadd/ui';
 import HomeScreen from '@pages/home';
@@ -26,19 +31,28 @@ function App(): React.JSX.Element {
         <PaperProvider>
           <QueryClientProvider client={queryClient}>
             <AxiosContext.Provider value={axiosInstance}>
-              <CurrentUserProfileContextProvider>
-                <NavigationContainer>
-                  <Stack.Navigator initialRouteName="Home">
-                    <Stack.Screen name="Home" component={HomeScreen} />
-                    <Stack.Screen name="DocumentView" component={DocumentViewScreen} />
-                    <Stack.Screen
-                      name="DocumentAdd"
-                      component={DocumentAddScreen}
-                    />
-                    <Stack.Screen name="Auth" component={LoginScreen} />
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </CurrentUserProfileContextProvider>
+              <BlockChainAxiosContext.Provider value={blockChainAxiosInstance}>
+                <CurrentUserProfileContextProvider>
+                  <NavigationContainer>
+                    <Stack.Navigator initialRouteName="Home">
+                      <Stack.Screen name="Home" component={HomeScreen} />
+                      <Stack.Screen
+                        name="DocumentView"
+                        component={DocumentViewScreen}
+                      />
+                      <Stack.Screen
+                        name="ConsultationView"
+                        component={ConsultationViewScreen}
+                      />
+                      <Stack.Screen
+                        name="DocumentAdd"
+                        component={DocumentAddScreen}
+                      />
+                      <Stack.Screen name="Auth" component={LoginScreen} />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </CurrentUserProfileContextProvider>
+              </BlockChainAxiosContext.Provider>
             </AxiosContext.Provider>
           </QueryClientProvider>
         </PaperProvider>
