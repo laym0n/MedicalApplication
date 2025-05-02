@@ -1,5 +1,4 @@
 import * as DocumentPicker from '@react-native-documents/picker';
-import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
 import 'react-native-get-random-values';
 import React, {useCallback, useState} from 'react';
@@ -63,7 +62,6 @@ const DocumentAddScreen = () => {
 
   return (
     <Layout>
-      <DocumentRequestNotification />
       <View>
         <Text>Выберите документ для шифрования:</Text>
         <Button title="Выбрать файл" onPress={pickFile} />

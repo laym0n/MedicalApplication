@@ -26,6 +26,10 @@ export const useConnectViaWebSocket = (
   } = useWebRTCContext();
 
   const connectViaWebSocket = useCallback(() => {
+    if (webSocketRef.current) {
+      console.log('Connection already openned');
+      return;
+    }
     const newWebSocket = new WebSocket(baseURL + '/p2p-signaling');
     newWebSocket.addEventListener('open', () => {
       console.log('open connection');

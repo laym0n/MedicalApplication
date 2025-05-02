@@ -1,7 +1,6 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Document} from '@shared/db/entity/document';
 import { useDocumentsModel } from '@shared/model/documentmodel';
-import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
 import React, {useCallback, useState} from 'react';
 import {
@@ -14,11 +13,14 @@ import {
 } from 'react-native';
 
 const DocumentCard: React.FC<{document: Document, onDelete: (id: number) => void}> = ({document, onDelete}) => {
+  const navigation = useNavigation();
+  const handleViewPress = useCallback(() => navigation.navigate('DocumentView', { documentId: document.id }), [document.id, navigation]);
   const handleDeletePress = useCallback(() => onDelete(document.id), [document.id, onDelete]);
   return (
     <View style={styles.card}>
       <Text style={styles.cardText}>{document.name}</Text>
       <Text style={styles.cardText}>{document.mime}</Text>
+      <Button title="Просмотр" onPress={handleViewPress} />
       <Button title="Удалить" onPress={handleDeletePress} />
     </View>
   );
@@ -44,7 +46,6 @@ const DocumentsScreen = () => {
 
   return (
     <Layout>
-      <DocumentRequestNotification />
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
           {documents.map(doc => <DocumentCard key={doc.id} onDelete={handleDelete} document={doc}/>)}

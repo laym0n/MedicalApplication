@@ -7,7 +7,8 @@ import {Menu} from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useSignOutCall from './api';
-import { useCurrentUserModel } from '@shared/model/currentusermodel';
+import {useCurrentUserModel} from '@shared/model/currentusermodel';
+import DocumentRequestNotification from '@widget/documentrequestmodal';
 
 const NonAuthneticatedControls: React.FC = () => {
   const navigation = useNavigation();
@@ -63,6 +64,7 @@ const Layout: React.FC<{children: ReactNode}> = ({children}) => {
   return (
     <>
       <View style={styles.container}>
+        <DocumentRequestNotification />
         <View style={styles.header}>
           {isAuthenticated ? (
             <AuthneticatedControls />

@@ -4,6 +4,7 @@ import '@app/config/ReactotronConfig';
 import {AxiosContext, axiosInstance} from '@app/context/httpclient';
 import {CurrentUserProfileContextProvider} from '@app/context/profilecontext';
 import {LoginScreen} from '@pages/auth/ui';
+import DocumentViewScreen from '@pages/document/ui';
 import DocumentAddScreen from '@pages/documentadd/ui';
 import HomeScreen from '@pages/home';
 import {NavigationContainer} from '@react-navigation/native';
@@ -29,6 +30,7 @@ function App(): React.JSX.Element {
                 <NavigationContainer>
                   <Stack.Navigator initialRouteName="Home">
                     <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen name="DocumentView" component={DocumentViewScreen} />
                     <Stack.Screen
                       name="DocumentAdd"
                       component={DocumentAddScreen}
