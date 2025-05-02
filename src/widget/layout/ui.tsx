@@ -7,6 +7,7 @@ import {Menu} from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useSignOutCall from './api';
+import { useCurrentUserModel } from '@shared/model/currentusermodel';
 
 const NonAuthneticatedControls: React.FC = () => {
   const navigation = useNavigation();
@@ -28,13 +29,13 @@ const AuthneticatedControls: React.FC = () => {
   const openMenu = useCallback(() => setVisible(true), []);
   const closeMenu = useCallback(() => setVisible(false), []);
 
-  const currentUserContext = useCurrentUserProfileContext();
+  const {handleLogOut} = useCurrentUserModel();
 
   const onSignOutPress = useCallback(() => {
     signOutCall();
     closeMenu();
-    currentUserContext!.setCurrentUserProfile(null);
-  }, [closeMenu, currentUserContext, signOutCall]);
+    handleLogOut();
+  }, [closeMenu, handleLogOut, signOutCall]);
   return (
     <Menu
       visible={visible}
