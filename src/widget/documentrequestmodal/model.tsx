@@ -6,6 +6,7 @@ import Toast from 'react-native-toast-message';
 import {useUpdateConsultationPrescription} from './api';
 import {P2PConnectionEstablishPayload, PrescriptionPayload} from './types';
 import {useCurrentUserProfileContext} from '@app/context/profilecontext';
+import { Consultation } from '@shared/db/entity/consultation';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -57,7 +58,11 @@ export const useSendDocument = () => {
       return;
     }
     connectViaWebSocket();
-  }, [connectViaWebSocket, currentUserContext?.currentUserProfile, disconnectViaWebSocket]);
+  }, [
+    connectViaWebSocket,
+    currentUserContext?.currentUserProfile,
+    disconnectViaWebSocket,
+  ]);
 
   const onIgnore = useCallback(() => setVisible(false), []);
 
@@ -121,7 +126,14 @@ export const useSendDocument = () => {
       updateConsultationPrescriptionAsync({
         consultationId: prescription.consultationId,
         prescription: {prescription: prescription.prescription},
-      }).then(() => setVisible(false));
+      })
+        .then((record) => {
+          const newConsultation = new Consultation();
+          newConsultation.transactionId = record.txId!;
+          return newConsultation.save();
+        })
+        .catch(console.log)
+        .finally(() => setVisible(false));
     };
     return createNewPeerConnection(undefined, onPrescriptionRecived)
       .then(() => sendReadyToReceivePrescription())

@@ -23,3 +23,4 @@ export interface DocumentMetadata {
 }
 
 export type ConsultationPrescriptionDto = components['schemas']['ConsultationPrescriptionDto'];
+export type BlockchainRecord = components['schemas']['BlockchainRecord'];

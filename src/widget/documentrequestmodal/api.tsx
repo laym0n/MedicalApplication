@@ -1,6 +1,6 @@
 import {useMutation} from '@tanstack/react-query';
-import {ConsultationPrescriptionDto} from './types';
-import { useAxiosInstance } from '@app/context/httpclient';
+import {BlockchainRecord, ConsultationPrescriptionDto} from './types';
+import {useAxiosInstance} from '@app/context/httpclient';
 
 interface UpdateConsultationPrescriptionDto {
   consultationId: string;
@@ -9,12 +9,18 @@ interface UpdateConsultationPrescriptionDto {
 
 export const useUpdateConsultationPrescription = () => {
   const axiosInstance = useAxiosInstance();
-  return useMutation<void, Error, UpdateConsultationPrescriptionDto>({
+  return useMutation<
+    BlockchainRecord,
+    Error,
+    UpdateConsultationPrescriptionDto
+  >({
     mutationFn: (params: UpdateConsultationPrescriptionDto) => {
-      return axiosInstance.patch(
-        `/consultation/${params.consultationId}/prescription`,
-        params.prescription,
-      );
+      return axiosInstance
+        .patch<BlockchainRecord>(
+          `/consultation/${params.consultationId}/prescription`,
+          params.prescription,
+        )
+        .then(response => response.data);
     },
   });
 };

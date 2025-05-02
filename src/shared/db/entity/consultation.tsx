@@ -5,6 +5,4 @@ import {BaseEntity} from './baseentity';
 export class Consultation extends BaseEntity {
   @Column({nullable: false})
   transactionId!: string;
-  @Column({nullable: false})
-  consultationId!: string;
 }

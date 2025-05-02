@@ -243,7 +243,14 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlockchainRecord"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -608,6 +615,14 @@
                 "type": "object",
                 "properties": {
                     "prescription": {
+                        "type": "string"
+                    }
+                }
+            },
+            "BlockchainRecord": {
+                "type": "object",
+                "properties": {
+                    "txId": {
                         "type": "string"
                     }
                 }

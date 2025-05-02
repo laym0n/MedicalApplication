@@ -253,6 +253,9 @@ export interface components {
         ConsultationPrescriptionDto: {
             prescription?: string;
         };
+        BlockchainRecord: {
+            txId?: string;
+        };
         ConsultationSlotInfoDto: {
             consultationSlotModel?: components["schemas"]["ConsultationSlotModel"];
             appointmentDateTimes?: string[];
@@ -470,7 +473,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "*/*": components["schemas"]["BlockchainRecord"];
+                };
             };
         };
     };
