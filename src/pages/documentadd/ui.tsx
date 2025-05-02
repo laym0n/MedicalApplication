@@ -7,12 +7,14 @@ import {Alert, Button, Text, TextInput, View} from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useDocumentsModel } from '@shared/model/documentmodel';
 import { Document } from '@shared/db/entity/document';
+import { useNavigation } from '@react-navigation/native';
 
 const DocumentAddScreen = () => {
   const [uri, setUri] = useState<string | undefined>(undefined);
   const [name, setName] = useState<string | undefined>(undefined);
   const [mime, setMime] = useState<string | undefined>(undefined);
   const {readFile, saveFile} = useDocumentsModel();
+  const navigation = useNavigation();
 
   const handleSaveFile = useCallback(async () => {
     try {
@@ -25,6 +27,7 @@ const DocumentAddScreen = () => {
       document.name = name;
       await saveFile(pureFile, document);
 
+      navigation.goBack();
       Toast.show({
         type: 'success',
         position: 'bottom',
@@ -35,7 +38,7 @@ const DocumentAddScreen = () => {
       console.error('Ошибка:', err);
       Alert.alert('Ошибка', err.message || 'Что-то пошло не так');
     }
-  }, [mime, name, readFile, saveFile, uri]);
+  }, [mime, name, navigation, readFile, saveFile, uri]);
 
   const pickFile = useCallback(async () => {
     try {

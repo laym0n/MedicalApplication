@@ -1,9 +1,9 @@
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Document} from '@shared/db/entity/document';
 import { useDocumentsModel } from '@shared/model/documentmodel';
 import DocumentRequestNotification from '@widget/documentrequestmodal';
 import Layout from '@widget/layout/ui';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   Button,
   ScrollView,
@@ -27,22 +27,27 @@ const DocumentCard: React.FC<{document: Document, onDelete: (id: number) => void
 const DocumentsScreen = () => {
   const navigation = useNavigation();
   const [documents, setDocuments] = useState<Document[]>([]);
-  useEffect(() => {
+  const loadDocuments = useCallback(() => {
     Document.find().then(newDocuments => setDocuments(newDocuments));
   }, []);
+  useFocusEffect(loadDocuments);
 
   const handleAddNewDocument = useCallback(
     () => navigation.navigate('DocumentAdd'),
     [navigation],
   );
   const {deleteDocumentById} = useDocumentsModel();
+  const handleDelete = useCallback((id: number) => {
+    deleteDocumentById(id)
+      .then(loadDocuments);
+  }, [deleteDocumentById, loadDocuments]);
 
   return (
     <Layout>
       <DocumentRequestNotification />
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
-          {documents.map(doc => <DocumentCard key={doc.id} onDelete={deleteDocumentById} document={doc}/>)}
+          {documents.map(doc => <DocumentCard key={doc.id} onDelete={handleDelete} document={doc}/>)}
         </ScrollView>
 
         <TouchableOpacity style={styles.addButton}>
