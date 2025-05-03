@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {RTCIceCandidate, RTCPeerConnection} from 'react-native-webrtc';
 import {P2PConnectionEstablishPayload} from '../types';
-import {useWebRTCContext} from './context';
+import {useWebRTCContext} from '@app/context/webrtccontext';
 import {wsBaseUrl} from '@app/constants';
 
 const baseURL = wsBaseUrl;

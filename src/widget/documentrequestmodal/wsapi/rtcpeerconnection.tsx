@@ -3,7 +3,7 @@ import {useCallback} from 'react';
 import {registerGlobals, RTCPeerConnection} from 'react-native-webrtc';
 import {DocumentMetadata, PrescriptionPayload} from '../types';
 import {Document} from '@shared/db/entity/document';
-import {useWebRTCContext} from './context';
+import {useWebRTCContext} from '@app/context/webrtccontext';
 import {uint8ArrayToBase64} from './utils';
 
 registerGlobals();

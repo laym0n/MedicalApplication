@@ -7,6 +7,7 @@ import {
 } from '@app/context/blockchainclient';
 import {AxiosContext, axiosInstance} from '@app/context/httpclient';
 import {CurrentUserProfileContextProvider} from '@app/context/profilecontext';
+import {WebRTCContextProvider} from '@app/context/webrtccontext';
 import {LoginScreen} from '@pages/auth/ui';
 import ConsultationViewScreen from '@pages/consultation/ui';
 import DocumentViewScreen from '@pages/document/ui';
@@ -33,24 +34,26 @@ function App(): React.JSX.Element {
             <AxiosContext.Provider value={axiosInstance}>
               <BlockChainAxiosContext.Provider value={blockChainAxiosInstance}>
                 <CurrentUserProfileContextProvider>
-                  <NavigationContainer>
-                    <Stack.Navigator initialRouteName="Home">
-                      <Stack.Screen name="Home" component={HomeScreen} />
-                      <Stack.Screen
-                        name="DocumentView"
-                        component={DocumentViewScreen}
-                      />
-                      <Stack.Screen
-                        name="ConsultationView"
-                        component={ConsultationViewScreen}
-                      />
-                      <Stack.Screen
-                        name="DocumentAdd"
-                        component={DocumentAddScreen}
-                      />
-                      <Stack.Screen name="Auth" component={LoginScreen} />
-                    </Stack.Navigator>
-                  </NavigationContainer>
+                  <WebRTCContextProvider>
+                    <NavigationContainer>
+                      <Stack.Navigator initialRouteName="Home">
+                        <Stack.Screen name="Home" component={HomeScreen} />
+                        <Stack.Screen
+                          name="DocumentView"
+                          component={DocumentViewScreen}
+                        />
+                        <Stack.Screen
+                          name="ConsultationView"
+                          component={ConsultationViewScreen}
+                        />
+                        <Stack.Screen
+                          name="DocumentAdd"
+                          component={DocumentAddScreen}
+                        />
+                        <Stack.Screen name="Auth" component={LoginScreen} />
+                      </Stack.Navigator>
+                    </NavigationContainer>
+                  </WebRTCContextProvider>
                 </CurrentUserProfileContextProvider>
               </BlockChainAxiosContext.Provider>
             </AxiosContext.Provider>

@@ -1,8 +1,7 @@
-import {useCallback, useRef} from 'react';
-import {RTCPeerConnection, RTCSessionDescription} from 'react-native-webrtc';
-import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
+import {useCallback} from 'react';
+import {RTCSessionDescription} from 'react-native-webrtc';
 import {DocumentMetadata, P2PConnectionEstablishPayload} from '../types';
-import {useWebRTCContext, WebRTCContext} from './context';
+import {useWebRTCContext} from '@app/context/webrtccontext';
 import {useConnectViaWebSocket} from './websocket';
 import {
   useCloseRtcPeerConnection,
@@ -10,35 +9,6 @@ import {
 } from './rtcpeerconnection';
 import {Document} from '@shared/db/entity/document';
 import {base64ToUint8Array} from './utils';
-
-export const WebRTCContextProvider: React.FC<{children: React.ReactNode}> = ({
-  children,
-}) => {
-  const webSocketRef = useRef<WebSocket | undefined>(undefined);
-  const rtcPeerConnectionRef = useRef<RTCPeerConnection | undefined>(undefined);
-  const dataChannelRef = useRef<RTCDataChannel | undefined>(undefined);
-  const lastReceivedOfferRef = useRef<
-    P2PConnectionEstablishPayload | undefined
-  >(undefined);
-
-  const sendViaWebSocketRef =
-    useRef<(data: P2PConnectionEstablishPayload) => Promise<void>>(undefined);
-  const sendViaDataChannelRef = useRef<(data: any) => Promise<void>>(undefined);
-
-  return (
-    <WebRTCContext.Provider
-      value={{
-        webSocketRef,
-        sendViaWebSocketRef,
-        lastReceivedOfferRef,
-        rtcPeerConnectionRef,
-        dataChannelRef,
-        sendViaDataChannelRef,
-      }}>
-      {children}
-    </WebRTCContext.Provider>
-  );
-};
 
 export const useP2PConnection = (
   onOfferReceived: (payload: P2PConnectionEstablishPayload) => void,

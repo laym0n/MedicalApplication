@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {Button, Modal, StyleSheet, Text, View} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {WebRTCContextProvider} from './wsapi';
 import {useSendDocument} from './model';
 import {Document} from '@shared/db/entity/document';
 
@@ -82,10 +81,7 @@ const PrescriptionUploadModal: React.FC<{
 
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
-            <Button
-              title="Загрузить"
-              onPress={onReadyToReceivePrescription}
-            />
+            <Button title="Загрузить" onPress={onReadyToReceivePrescription} />
           </View>
         </View>
       </View>
@@ -135,11 +131,7 @@ const OfferModal: React.FC<{}> = ({}) => {
 };
 
 const DocumentRequestNotification: React.FC<{}> = () => {
-  return (
-    <WebRTCContextProvider>
-      <OfferModal />
-    </WebRTCContextProvider>
-  );
+  return <OfferModal />;
 };
 
 const styles = StyleSheet.create({

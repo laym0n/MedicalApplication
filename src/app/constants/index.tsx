@@ -2,10 +2,6 @@ export const host = '10.0.2.2:8081';
 export const httpBaseUrl = 'http://' + host;
 export const wsBaseUrl = 'ws://' + host;
 
-// export const getIceServers = async () => {
-//   const response = await fetch('https://victor_k02.metered.live/api/v1/turn/credentials?apiKey=769c56fb899ffae4b427576ef1083446a4b0');
-//   return await response.json();
-// };
 export const getIceServers = async () => {
   return [
     { urls: 'stun:stun.relay.metered.ca:80' },
