@@ -4,6 +4,9 @@ import Layout from '@widget/layout/ui';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {useGetConsultation} from './api';
+import {useCurrentUserProfileContext} from '@app/context/profilecontext';
+import 'react-native-get-random-values';
+import CryptoJS from 'crypto-js';
 
 interface ConsultationProps {
   consultationId: number;
@@ -18,6 +21,7 @@ const ConsultationViewScreen = () => {
   >(null);
 
   const {mutateAsync: getConsultationAsync} = useGetConsultation();
+  const currentUserContext = useCurrentUserProfileContext();
 
   useEffect(() => {
     async function LoadConsultation() {
@@ -25,16 +29,20 @@ const ConsultationViewScreen = () => {
       if (!consultation) {
         return;
       }
-      const {prescription} = await getConsultationAsync(
+      const {prescription: encryptedPrescription} = await getConsultationAsync(
         consultation.transactionId,
       );
-      if (!prescription) {
+      if (!encryptedPrescription) {
         return;
       }
-      setDecryptedPrescription(prescription);
+      const newDecryptedPrescription = CryptoJS.AES.decrypt(
+        encryptedPrescription,
+        currentUserContext!.masterKey!,
+      ).toString(CryptoJS.enc.Utf8);
+      setDecryptedPrescription(newDecryptedPrescription);
     }
     LoadConsultation();
-  }, [consultationId, getConsultationAsync]);
+  }, [consultationId, currentUserContext, getConsultationAsync]);
 
   return (
     <Layout>

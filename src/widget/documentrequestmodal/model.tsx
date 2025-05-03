@@ -7,6 +7,8 @@ import {useUpdateConsultationPrescription} from './api';
 import {P2PConnectionEstablishPayload, PrescriptionPayload} from './types';
 import {useCurrentUserProfileContext} from '@app/context/profilecontext';
 import { Consultation } from '@shared/db/entity/consultation';
+import 'react-native-get-random-values';
+import CryptoJS from 'crypto-js';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -123,9 +125,11 @@ export const useSendDocument = () => {
     }: {
       prescription: PrescriptionPayload;
     }) => {
+      const masterKey = currentUserContext?.masterKey;
+      const encryptedPrescription = CryptoJS.AES.encrypt(prescription.prescription, masterKey!).toString();
       updateConsultationPrescriptionAsync({
         consultationId: prescription.consultationId,
-        prescription: {prescription: prescription.prescription},
+        prescription: {prescription: encryptedPrescription},
       })
         .then((record) => {
           const newConsultation = new Consultation();
@@ -138,11 +142,7 @@ export const useSendDocument = () => {
     return createNewPeerConnection(undefined, onPrescriptionRecived)
       .then(() => sendReadyToReceivePrescription())
       .catch(console.error);
-  }, [
-    createNewPeerConnection,
-    sendReadyToReceivePrescription,
-    updateConsultationPrescriptionAsync,
-  ]);
+  }, [createNewPeerConnection, currentUserContext?.masterKey, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
   return {
     visible,
     documents,
