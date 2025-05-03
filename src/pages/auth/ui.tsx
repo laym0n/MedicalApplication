@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import useSignInCall from './api';
 import {useGetProfile} from '@shared/api/hooks';
-import {useCurrentUserModel} from '@shared/model/currentusermodel';
+import { useCurrentUserProfileContext } from '@app/context/profilecontext';
 
 const AuthScreen: FC<{isLogin: boolean}> = ({isLogin}) => {
   const navigation = useNavigation();
@@ -18,8 +18,8 @@ const AuthScreen: FC<{isLogin: boolean}> = ({isLogin}) => {
   const [showPassword, setShowPassword] = useState(false);
   const {mutateAsync: signInAsync} = useSignInCall();
 
-  const {handleSetCurrentUser} = useCurrentUserModel();
-  const {mutateAsync: getProfileAsync} = useGetProfile(handleSetCurrentUser);
+  const currentUserContext = useCurrentUserProfileContext();
+  const {mutateAsync: getProfileAsync} = useGetProfile(currentUserContext!.handleSignIn);
 
   const handleAuth = useCallback(() => {
     signInAsync({

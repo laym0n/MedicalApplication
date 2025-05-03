@@ -1,13 +1,11 @@
 import {useCurrentUserProfileContext} from '@app/context/profilecontext';
 import {useNavigation} from '@react-navigation/native';
-import {useGetProfile} from '@shared/api/hooks';
-import React, {ReactNode, useCallback, useEffect, useState} from 'react';
+import React, {ReactNode, useCallback, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Menu} from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useSignOutCall from './api';
-import {useCurrentUserModel} from '@shared/model/currentusermodel';
 import DocumentRequestNotification from '@widget/documentrequestmodal';
 
 const NonAuthneticatedControls: React.FC = () => {
@@ -30,13 +28,13 @@ const AuthneticatedControls: React.FC = () => {
   const openMenu = useCallback(() => setVisible(true), []);
   const closeMenu = useCallback(() => setVisible(false), []);
 
-  const {handleLogOut} = useCurrentUserModel();
+  const currentUserContext = useCurrentUserProfileContext();
 
   const onSignOutPress = useCallback(() => {
     signOutCall();
     closeMenu();
-    handleLogOut();
-  }, [closeMenu, handleLogOut, signOutCall]);
+    currentUserContext!.handleLogOut();
+  }, [closeMenu, currentUserContext, signOutCall]);
   return (
     <Menu
       visible={visible}
@@ -53,12 +51,6 @@ const AuthneticatedControls: React.FC = () => {
 
 const Layout: React.FC<{children: ReactNode}> = ({children}) => {
   const currentUserContext = useCurrentUserProfileContext();
-  const {mutateAsync: getProfileAsync} = useGetProfile(
-    currentUserContext!.setCurrentUserProfile,
-  );
-  useEffect(() => {
-    getProfileAsync();
-  }, [getProfileAsync]);
   const isAuthenticated = currentUserContext?.currentUserProfile;
 
   return (
