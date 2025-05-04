@@ -69,6 +69,7 @@ export const useCreateNewRTCPeerConnection = () => {
           sendViaWebSocketRef.current!({
             type: 'candidate',
             candidate: event.candidate,
+            destinationSessionId: lastReceivedOfferRef.current?.sourceSessionId,
           });
         }
       });
