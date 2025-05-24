@@ -9,6 +9,7 @@ import {useCurrentUserProfileContext} from '@app/context/profilecontext';
 import { Consultation } from '@shared/db/entity/consultation';
 import 'react-native-get-random-values';
 import CryptoJS from 'crypto-js';
+import { useConsultationModel } from '@shared/model/consultationmodel';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
@@ -117,6 +118,8 @@ export const useSendDocument = () => {
     saveFile,
     sendReadyToReceiveFile,
   ]);
+
+  const {save: saveConsultation} = useConsultationModel();
   const {mutateAsync: updateConsultationPrescriptionAsync} =
     useUpdateConsultationPrescription();
   const onReadyToReceivePrescription = useCallback(() => {
@@ -134,15 +137,16 @@ export const useSendDocument = () => {
         .then((record) => {
           const newConsultation = new Consultation();
           newConsultation.transactionId = record.txId!;
-          return newConsultation.save();
+          newConsultation.data = prescription.prescription;
+          return saveConsultation(newConsultation);
         })
-        .catch(console.log)
+        .catch(reason => console.error(reason))
         .finally(() => setVisible(false));
     };
     return createNewPeerConnection(undefined, onPrescriptionRecived)
       .then(() => sendReadyToReceivePrescription())
       .catch(console.error);
-  }, [createNewPeerConnection, currentUserContext?.masterKey, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
+  }, [createNewPeerConnection, currentUserContext?.masterKey, saveConsultation, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
   return {
     visible,
     documents,

@@ -1,8 +1,29 @@
-import {Entity, Column} from 'typeorm/browser';
+import {
+  Entity,
+  Column,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm/browser';
 import {BaseEntity} from './baseentity';
+import {encryptWithKey, decryptWithKey} from '@shared/util/crypto-util';
 
 @Entity('consultation')
 export class Consultation extends BaseEntity {
-  @Column({nullable: false})
+  encryptionKey!: string;
+
+  @Column({nullable: true})
   transactionId!: string;
+
+  @Column({ nullable: false })
+  data!: string;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  encryptField() {
+    this.data = encryptWithKey(this.data, this.encryptionKey);
+  }
+
+  decryptFields() {
+    this.data = decryptWithKey(this.data, this.encryptionKey);
+  }
 }
