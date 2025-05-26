@@ -2,20 +2,32 @@ import {useCallback} from 'react';
 import * as Keychain from 'react-native-keychain';
 import {Consultation} from '@shared/db/entity/consultation';
 import {generateKey} from '@shared/util/crypto-util';
+import useBackupModel from './backupmodel';
 
-const getConsultationServiceName = (consultation: Consultation) => `consultationId ${consultation.id}`;
+const getConsultationServiceName = (consultation: Consultation) =>
+  `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
-  const save = useCallback(async (consultation: Consultation) => {
-    const encryptionKey = generateKey();
+  const {backupConsultation} = useBackupModel();
+  const save = useCallback(
+    async (consultation: Consultation) => {
+      const encryptionKey = generateKey();
 
-    consultation.encryptionKey = encryptionKey;
-    const newConsultation = await consultation.save();
+      consultation.encryptionKey = encryptionKey;
+      const newConsultation = await consultation.save();
 
-    await Keychain.setGenericPassword(newConsultation.id.toString(), encryptionKey, {
-      service: getConsultationServiceName(newConsultation),
-    });
-  }, []);
+      await Keychain.setGenericPassword(
+        newConsultation.id.toString(),
+        encryptionKey,
+        {
+          service: getConsultationServiceName(newConsultation),
+        },
+      );
+      consultation.decryptFields();
+      backupConsultation(newConsultation);
+    },
+    [backupConsultation],
+  );
   const getById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});
     if (consultation === null) {
@@ -32,17 +44,20 @@ export const useConsultationModel = () => {
     consultation.decryptFields();
     return consultation;
   }, []);
-  const getAllByIds = useCallback(async (consultationIds: string[]) => {
-    let consultations: Consultation[] = [];
-    for (const consultationId of consultationIds) {
-      const consultation = await getById(consultationId);
-      if (!consultation) {
-        continue;
+  const getAllByIds = useCallback(
+    async (consultationIds: string[]) => {
+      let consultations: Consultation[] = [];
+      for (const consultationId of consultationIds) {
+        const consultation = await getById(consultationId);
+        if (!consultation) {
+          continue;
+        }
+        consultations.push(consultation);
       }
-      consultations.push(consultation);
-    }
-    return consultations;
-  }, [getById]);
+      return consultations;
+    },
+    [getById],
+  );
   const deleteById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});
     if (consultation === null) {

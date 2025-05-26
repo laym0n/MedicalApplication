@@ -19,3 +19,5 @@ export type UpdateConsultationPrescriptionDto = {
   consultationId: string;
   prescription: ConsultationPrescriptionDto;
 };
+
+export type BlockchainRecord = components['schemas']['BlockchainRecord'];

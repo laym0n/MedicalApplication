@@ -17,6 +17,7 @@ import PatientProfileViewScreen from '@pages/patientprofile/ui';
 import PatientProfileAddScreen from '@pages/patientprofileadd/ui';
 import PermissionViewScreen from '@pages/permission/ui';
 import PermissionsScreen from '@pages/permissions/ui';
+import SettingsScreen from '@pages/settings';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
@@ -65,6 +66,10 @@ function App(): React.JSX.Element {
                         <Stack.Screen
                           name="Permissions"
                           component={PermissionsScreen}
+                        />
+                        <Stack.Screen
+                          name="Settings"
+                          component={SettingsScreen}
                         />
                         <Stack.Screen
                           name="PermissionView"

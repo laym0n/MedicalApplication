@@ -43,4 +43,3 @@ export interface P2pPayload {
   data: ConsultationPayload | PatientProfilePayload | DocumentMetaPayload | string;
 }
 
-export type BlockchainRecord = components['schemas']['BlockchainRecord'];
