@@ -1,5 +1,8 @@
-import 'react-native-get-random-values';
-import CryptoJS from 'crypto-js';
+import {
+  generateKey,
+  encryptWithKey,
+  decryptWithKey,
+} from '@shared/util/crypto-util';
 import {useCallback} from 'react';
 import RNFS from 'react-native-fs';
 import * as Keychain from 'react-native-keychain';
@@ -13,10 +16,10 @@ export const useDocumentsModel = () => {
     return {pureFile};
   }, []);
   const saveFile = useCallback(async (pureFile: string, document: Document) => {
-    const encryptionKey = CryptoJS.lib.WordArray.random(32).toString();
+    const encryptionKey = generateKey();
     const newFileId = document.name + '_' + Date.now();
 
-    const encrypted = CryptoJS.AES.encrypt(pureFile, encryptionKey).toString();
+    const encrypted = encryptWithKey(pureFile, encryptionKey);
 
     const savePath = `${RNFS.DocumentDirectoryPath}/${newFileId}.enc`;
     await RNFS.writeFile(savePath, encrypted, 'utf8');
@@ -44,9 +47,9 @@ export const useDocumentsModel = () => {
     const {password: encryptionKey} = credentials;
     const encryptedFile = await RNFS.readFile(document.fileUri, 'utf8');
 
-    return CryptoJS.AES.decrypt(encryptedFile, encryptionKey).toString(CryptoJS.enc.Utf8);
+    return decryptWithKey(encryptedFile, encryptionKey);
   }, []);
-  const deleteDocumentById = useCallback(async (documentId: number) => {
+  const deleteDocumentById = useCallback(async (documentId: string) => {
     const document = await Document.findOneBy({id: documentId});
     if (document === null) {
       return;

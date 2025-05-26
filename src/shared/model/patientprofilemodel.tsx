@@ -1,5 +1,6 @@
-import 'react-native-get-random-values';
-import CryptoJS from 'crypto-js';
+import {
+  generateKey,
+} from '@shared/util/crypto-util';
 import {useCallback} from 'react';
 import * as Keychain from 'react-native-keychain';
 import {PatientProfile} from '@shared/db/entity/patientprofile';
@@ -9,7 +10,7 @@ const getPatientProfileServiceName = (patientProfile: PatientProfile) =>
 
 export const usePatientProfileModel = () => {
   const save = useCallback(async (patientProfile: PatientProfile) => {
-    const encryptionKey = CryptoJS.lib.WordArray.random(32).toString();
+    const encryptionKey = generateKey();
     patientProfile.encryptionKey = encryptionKey;
 
     const newPatientProfile = await patientProfile.save();

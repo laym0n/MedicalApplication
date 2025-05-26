@@ -1,5 +1,6 @@
-import 'react-native-get-random-values';
-import CryptoJS from 'crypto-js';
+import {
+  generateKey,
+} from '@shared/util/crypto-util';
 import {ProfileModel} from '@shared/api/types';
 import {useCallback} from 'react';
 import * as Keychain from 'react-native-keychain';
@@ -18,7 +19,7 @@ export const useMasterKeyModel = () => {
       });
       let encryptionKey: string;
       if (!savedMasterKey) {
-        encryptionKey = CryptoJS.lib.WordArray.random(32).toString();
+        encryptionKey = generateKey();
         await Keychain.setGenericPassword(
           getMasterKeyServiceName(currentUser),
           encryptionKey,

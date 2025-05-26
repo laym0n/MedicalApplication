@@ -11,6 +11,7 @@ import { useConsultationModel } from '@shared/model/consultationmodel';
 import { usePatientProfileModel } from '@shared/model/patientprofilemodel';
 import { useCurrentUserProfileContext } from '@app/context/profilecontext';
 import useConsultationHandler from './consultationhandler';
+import { Permission } from '@shared/db/entity/permission';
 
 const useDataExchange = () => {
     const { handleReceiveFileDataPayload, handleReceiveDocumentMetaPayload } = useDocumentHandler();
@@ -21,7 +22,11 @@ const useDataExchange = () => {
     const consultationHandler = useP2PPayloadHandler('CONSULTATION', handleReceiveConsultationPayload);
 
     const closeP2pConnectionRef = useRef<() => void>(() => { });
-    const eofHandler = useP2PPayloadHandler('EOF', closeP2pConnectionRef.current);
+    const handleEOF = useCallback(() => {
+        setVisible(false);
+        closeP2pConnectionRef.current();
+    }, []);
+    const eofHandler = useP2PPayloadHandler('EOF', handleEOF);
 
     const p2pPayloadHandler = useCallback((p2pPayload: P2pPayload) => {
         [documentHandler, documentMetaHandler, eofHandler, consultationHandler].forEach(payloadHandler => payloadHandler(p2pPayload));
@@ -134,9 +139,15 @@ const useDataExchange = () => {
                 await sendConsultationViaP2p(consultation);
             }
             await sendEOFViaP2P();
+            const permission = new Permission();
+            permission.userId = offerPayload?.sourceProfile?.user?.id!;
+            permission.consultations = selectedConsultations;
+            permission.patientProfiles = selectedPatientProfiles;
+            permission.documents = selectedDocuments;
+            await permission.save();
             setVisible(false);
         },
-        [createNewPeerConnection, documents, getAllConsultationsByIds, getAllPatientProfilesByIds, readDocument, sendConsultationViaP2p, sendDocumentViaP2p, sendEOFViaP2P, sendPatientProfileViaP2p, sendReadyToSendData],
+        [createNewPeerConnection, documents, getAllConsultationsByIds, getAllPatientProfilesByIds, offerPayload?.sourceProfile?.user?.id, readDocument, sendConsultationViaP2p, sendDocumentViaP2p, sendEOFViaP2P, sendPatientProfileViaP2p, sendReadyToSendData],
     );
 
     const onReadyToReceiveConsultationResults = useCallback(

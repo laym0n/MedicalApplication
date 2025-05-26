@@ -15,6 +15,8 @@ const useDocumentHandler = () => {
         document.mime = fileMetaRef.current.mime;
         document.name = fileMetaRef.current.name;
         saveFile(fileRef.current, document);
+        fileRef.current = undefined;
+        fileMetaRef.current = undefined;
     }, [saveFile]);
     const handleReceiveDocumentMetaPayload = useCallback((payload: DocumentMetaPayload) => {
         fileMetaRef.current = payload;

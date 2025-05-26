@@ -3,15 +3,16 @@ import {Document} from '@shared/db/entity/document';
 import SQLite from 'react-native-sqlite-storage';
 import { Consultation } from '@shared/db/entity/consultation';
 import { PatientProfile } from '@shared/db/entity/patientprofile';
+import { Permission } from '@shared/db/entity/permission';
 
 SQLite.enablePromise(true);
 
 const AppDataSource = new DataSource({
   type: 'react-native',
-  database: 'myapp6.db',
+  database: 'myapp11.db',
   location: 'default',
   driver: SQLite,
-  entities: [Document, Consultation, PatientProfile],
+  entities: [Document, Consultation, PatientProfile, Permission],
   synchronize: true, // Только в dev!
 });
 

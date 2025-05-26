@@ -30,6 +30,10 @@ const AuthneticatedControls: React.FC = () => {
 
   const currentUserContext = useCurrentUserProfileContext();
 
+  const navigation = useNavigation();
+  const onPermissionsPress = useCallback(() => {
+    navigation.navigate('Permissions');
+  }, [navigation]);
   const onSignOutPress = useCallback(() => {
     signOutCall();
     closeMenu();
@@ -44,6 +48,7 @@ const AuthneticatedControls: React.FC = () => {
           <Ionicons name="person-circle-outline" size={32} color="black" />
         </TouchableOpacity>
       }>
+      <Menu.Item onPress={onPermissionsPress} title="Разрешения на данные" />
       <Menu.Item onPress={onSignOutPress} title="Выход" />
     </Menu>
   );
