@@ -16,7 +16,7 @@ export const useConsultationModel = () => {
       service: getConsultationServiceName(newConsultation),
     });
   }, []);
-  const getById = useCallback(async (consultationId: number) => {
+  const getById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});
     if (consultation === null) {
       return undefined;
@@ -32,7 +32,18 @@ export const useConsultationModel = () => {
     consultation.decryptFields();
     return consultation;
   }, []);
-  const deleteById = useCallback(async (consultationId: number) => {
+  const getAllByIds = useCallback(async (consultationIds: string[]) => {
+    let consultations: Consultation[] = [];
+    for (const consultationId of consultationIds) {
+      const consultation = await getById(consultationId);
+      if (!consultation) {
+        continue;
+      }
+      consultations.push(consultation);
+    }
+    return consultations;
+  }, [getById]);
+  const deleteById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});
     if (consultation === null) {
       return;
@@ -42,5 +53,5 @@ export const useConsultationModel = () => {
       service: getConsultationServiceName(consultation),
     });
   }, []);
-  return {save, getById, deleteById};
+  return {save, getById, getAllByIds, deleteById};
 };

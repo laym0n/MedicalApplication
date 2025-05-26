@@ -1,41 +1,113 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Button, Modal, StyleSheet, Text, View} from 'react-native';
-import {Picker} from '@react-native-picker/picker';
-import {useSendDocument} from './model';
 import {Document} from '@shared/db/entity/document';
+import {PatientProfile} from '@shared/db/entity/patientprofile';
+import {Consultation} from '@shared/db/entity/consultation';
+import SectionedMultiSelect from 'react-native-sectioned-multi-select';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import useDataExchange from './model/index';
 
 const DocumentRequestModal: React.FC<{
   documents: Document[];
+  patientProfiles: PatientProfile[];
+  consultations: Consultation[];
+  onSend: (selectedIds: {
+    documentIds: string[];
+    profileIds: string[];
+    consultationIds: string[];
+  }) => void;
   visible: boolean;
-  selectedDocumentIdRef: React.RefObject<number | undefined>;
   onIgnore: any;
-  onSend: any;
-}> = ({documents, visible, selectedDocumentIdRef, onIgnore, onSend}) => {
-  const setSelectedDocumentId = useCallback(
-    (newSelectedDocumentId: any) =>
-      (selectedDocumentIdRef.current = newSelectedDocumentId),
-    [selectedDocumentIdRef],
+}> = ({
+  documents,
+  patientProfiles,
+  consultations,
+  visible,
+  onIgnore,
+  onSend,
+}) => {
+  const groupedItems = [
+    {
+      id: 'document',
+      name: 'Документ',
+      children: documents?.map(doc => ({id: doc.id, name: doc.name})),
+    },
+    {
+      id: 'profile',
+      name: 'Профиль пациента',
+      children: patientProfiles?.map(p => ({id: p.id, name: p.name})),
+    },
+    {
+      id: 'consultation',
+      name: 'Консультации',
+      children: consultations?.map(c => ({id: c.id, name: c.id})),
+    },
+  ];
+
+  const [selectedAll, setSelectedAll] = useState<string[]>([]);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
+  const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
+  const [selectedConsultationIds, setSelectedConsultationIds] = useState<
+    string[]
+  >([]);
+
+  const docIds = useMemo(() => documents.map(d => d.id), [documents]);
+  const profileIds = useMemo(
+    () => patientProfiles.map(d => d.id),
+    [patientProfiles],
   );
+  const consultIds = useMemo(
+    () => consultations.map(d => d.id),
+    [consultations],
+  );
+
+  const onSelectedItemsChange = useCallback(
+    (selected: string[]) => {
+      setSelectedAll(selected);
+
+      setSelectedDocumentIds(selected.filter(id => docIds.includes(id)));
+      setSelectedProfileIds(selected.filter(id => profileIds.includes(id)));
+      setSelectedConsultationIds(
+        selected.filter(id => consultIds.includes(id)),
+      );
+    },
+    [consultIds, docIds, profileIds],
+  );
+
+  const handleSendPress = useCallback(() => {
+    onSend({
+      consultationIds: selectedConsultationIds,
+      profileIds: selectedProfileIds,
+      documentIds: selectedDocumentIds,
+    });
+  }, [
+    onSend,
+    selectedConsultationIds,
+    selectedDocumentIds,
+    selectedProfileIds,
+  ]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>Запрос документов</Text>
-          <Text style={styles.description}>
-            Пожалуйста, выберите документ для отправки
-          </Text>
-          <Picker
-            onValueChange={itemValue => setSelectedDocumentId(itemValue)}
-            style={styles.picker}>
-            {documents.map(doc => (
-              <Picker.Item key={doc.id} label={doc.name} value={doc.id} />
-            ))}
-          </Picker>
+          <Text style={styles.title}>Запрос данных</Text>
+          <Text style={styles.description}>Выберите данные для отправки</Text>
+          <SectionedMultiSelect
+            items={groupedItems}
+            uniqueKey="id"
+            subKey="children"
+            selectText="Выберите элементы"
+            showDropDowns={true}
+            readOnlyHeadings={true}
+            onSelectedItemsChange={onSelectedItemsChange}
+            selectedItems={selectedAll}
+            IconRenderer={Icon}
+          />
 
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
-            <Button title="Отправить" onPress={onSend} />
+            <Button title="Отправить" onPress={handleSendPress} />
           </View>
         </View>
       </View>
@@ -43,45 +115,21 @@ const DocumentRequestModal: React.FC<{
   );
 };
 
-const DocumentUploadModal: React.FC<{
+const ConsultationResultModal: React.FC<{
   visible: boolean;
   onIgnore: any;
-  onReadyToReceiveFile: any;
-}> = ({visible, onIgnore, onReadyToReceiveFile}) => {
-  return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Загрузка документов</Text>
-          <Text style={styles.description}>Согласиться сохранить файлы</Text>
-
-          <View style={styles.buttons}>
-            <Button title="Игнорировать" color="#999" onPress={onIgnore} />
-            <Button title="Загрузить" onPress={onReadyToReceiveFile} />
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-const PrescriptionUploadModal: React.FC<{
-  visible: boolean;
-  onIgnore: any;
-  onReadyToReceivePrescription: any;
-}> = ({visible, onIgnore, onReadyToReceivePrescription}) => {
+  onReadyToReceiveConsultationResults: any;
+}> = ({visible, onIgnore, onReadyToReceiveConsultationResults}) => {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>Загрузка результатов консультации</Text>
-          <Text style={styles.description}>
-            Загрузить результаты консультации
-          </Text>
+          <Text style={styles.description}>Согласиться сохранить результаты консультации</Text>
 
           <View style={styles.buttons}>
             <Button title="Игнорировать" color="#999" onPress={onIgnore} />
-            <Button title="Загрузить" onPress={onReadyToReceivePrescription} />
+            <Button title="Загрузить" onPress={onReadyToReceiveConsultationResults} />
           </View>
         </View>
       </View>
@@ -92,38 +140,32 @@ const PrescriptionUploadModal: React.FC<{
 const OfferModal: React.FC<{}> = ({}) => {
   const {
     documents,
+    patientProfiles,
+    consultations,
     onIgnore,
     onSend,
     visible,
-    selectedDocumentIdRef,
-    onReadyToReceiveFile,
-    onReadyToReceivePrescription,
+    onReadyToReceiveConsultationResults,
     offerPayload,
-  } = useSendDocument();
+  } = useDataExchange();
 
   return (
     <>
       {offerPayload?.type === 'offer_request' && (
         <DocumentRequestModal
           documents={documents}
+          consultations={consultations}
+          patientProfiles={patientProfiles}
           onIgnore={onIgnore}
           onSend={onSend}
           visible={visible}
-          selectedDocumentIdRef={selectedDocumentIdRef}
         />
       )}
       {offerPayload?.type === 'offer_upload' && (
-        <DocumentUploadModal
+        <ConsultationResultModal
           onIgnore={onIgnore}
           visible={visible}
-          onReadyToReceiveFile={onReadyToReceiveFile}
-        />
-      )}
-      {offerPayload?.type === 'offer_prescription' && (
-        <PrescriptionUploadModal
-          onIgnore={onIgnore}
-          visible={visible}
-          onReadyToReceivePrescription={onReadyToReceivePrescription}
+          onReadyToReceiveConsultationResults={onReadyToReceiveConsultationResults}
         />
       )}
     </>
@@ -140,6 +182,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scrollArea: {
+    marginBottom: 16,
+  },
+  section: {
+    fontWeight: 'bold',
+    marginTop: 12,
+    marginBottom: 4,
   },
   container: {
     width: '85%',

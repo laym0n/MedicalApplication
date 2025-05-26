@@ -1,15 +1,12 @@
-import {getIceServers} from '@app/constants';
-import {useCallback} from 'react';
-import {registerGlobals, RTCPeerConnection} from 'react-native-webrtc';
-import {DocumentMetadata, PrescriptionPayload} from '../types';
-import {Document} from '@shared/db/entity/document';
-import {useWebRTCContext} from '@app/context/webrtccontext';
-import {uint8ArrayToBase64} from './utils';
+import { getIceServers } from '@app/constants';
+import { useCallback } from 'react';
+import { registerGlobals, RTCPeerConnection } from 'react-native-webrtc';
+import { useWebRTCContext } from '@app/context/webrtccontext';
 
 registerGlobals();
 
-export const useCloseRtcPeerConnection = () => {
-  const {dataChannelRef, rtcPeerConnectionRef} = useWebRTCContext();
+export const useCloseCommonRtcPeerConnection = () => {
+  const { dataChannelRef, rtcPeerConnectionRef } = useWebRTCContext();
   const closeRtcPeerConnection = useCallback(() => {
     if (dataChannelRef.current) {
       if (
@@ -35,20 +32,16 @@ export const useCloseRtcPeerConnection = () => {
   return closeRtcPeerConnection;
 };
 
-export const useCreateNewRTCPeerConnection = () => {
+export const useCreateNewCommonRTCPeerConnection = () => {
   const {
     sendViaWebSocketRef,
     rtcPeerConnectionRef,
     dataChannelRef,
-    sendViaDataChannelRef,
     lastReceivedOfferRef,
   } = useWebRTCContext();
-  const closeRTCPeerConnection = useCloseRtcPeerConnection();
+  const closeRTCPeerConnection = useCloseCommonRtcPeerConnection();
   return useCallback(
-    async (
-      onFileReceive?: (args: {pureFile: string; document: Document}) => void,
-      onPrescriptionReceive?: (args: {prescription: PrescriptionPayload}) => void,
-    ) => {
+    async () => {
       const peerConstraints = {
         iceServers: await getIceServers(),
       };
@@ -85,49 +78,10 @@ export const useCreateNewRTCPeerConnection = () => {
         }
       });
 
-      let receivedChunks: Uint8Array[] = [];
-      let receivedMeta: DocumentMetadata | null = null;
       newPeerConnection.addEventListener('datachannel', event => {
         let datachannel = event.channel;
         datachannel.addEventListener('open', openEvent => {
           console.log(`📡 DataChannel открыт ${openEvent}`);
-        });
-        datachannel.addEventListener('message', messageReceivedEvent => {
-          if (lastReceivedOfferRef.current?.type !== 'offer_upload') {
-            return;
-          }
-          const data = messageReceivedEvent.data;
-          if (typeof data === 'string') {
-            if (data === 'EOF') {
-              console.log('📥 Получен EOF');
-              const pureFile = uint8ArrayToBase64(receivedChunks);
-              const document = new Document();
-              document.name = receivedMeta!.name!;
-              document.mime = receivedMeta!.mime!;
-              onFileReceive!({pureFile, document});
-              receivedChunks = [];
-              receivedMeta = null;
-              return;
-            }
-            receivedMeta = JSON.parse(data) as DocumentMetadata;
-            console.log('📥 Метаданные:', receivedMeta);
-          } else if (data instanceof ArrayBuffer) {
-            console.log('Receive chunk');
-            receivedChunks.push(new Uint8Array(data));
-          } else {
-            console.warn('⚠️ Неизвестный тип данных:', data);
-          }
-        });
-        datachannel.addEventListener('message', messageReceivedEvent => {
-          if (lastReceivedOfferRef.current?.type !== 'offer_prescription') {
-            return;
-          }
-          const data = messageReceivedEvent.data;
-          if (typeof data !== 'string') {
-            return;
-          }
-          const prescription = JSON.parse(data) as PrescriptionPayload;
-          onPrescriptionReceive!({prescription});
         });
         datachannel.addEventListener('close', closeEvent => {
           console.log(`📡 DataChannel закрыт ${JSON.stringify(closeEvent)}`);
@@ -146,19 +100,7 @@ export const useCreateNewRTCPeerConnection = () => {
         console.log('📨 DataChennel закрыт:');
       });
       dataChannelRef.current = newDataChannel;
-      sendViaDataChannelRef.current = data => {
-        return new Promise<void>(resolve => {
-          if (newDataChannel.readyState === 'open') {
-            newDataChannel.send(data);
-            resolve();
-          }
-          newDataChannel.addEventListener('open', () => {
-            newDataChannel.send(data);
-            resolve();
-          });
-        });
-      };
     },
-    [closeRTCPeerConnection, dataChannelRef, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaDataChannelRef, sendViaWebSocketRef],
+    [closeRTCPeerConnection, dataChannelRef, lastReceivedOfferRef, rtcPeerConnectionRef, sendViaWebSocketRef],
   );
 };

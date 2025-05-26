@@ -23,7 +23,7 @@ export const usePatientProfileModel = () => {
     );
   }, []);
 
-  const getById = useCallback(async (id: number) => {
+  const getById = useCallback(async (id: string) => {
     const patientProfile = await PatientProfile.findOneBy({id});
     if (!patientProfile) {
       return undefined;
@@ -40,7 +40,19 @@ export const usePatientProfileModel = () => {
     return patientProfile;
   }, []);
 
-  const deleteById = useCallback(async (id: number) => {
+    const getAllByIds = useCallback(async (patientProfileIds: string[]) => {
+      let patientProfiles: PatientProfile[] = [];
+      for (const patientProfileId of patientProfileIds) {
+        const patientProfile = await getById(patientProfileId);
+        if (!patientProfile) {
+          continue;
+        }
+        patientProfiles.push(patientProfile);
+      }
+      return patientProfiles;
+    }, [getById]);
+
+  const deleteById = useCallback(async (id: string) => {
     const patientProfile = await PatientProfile.findOneBy({id});
     if (!patientProfile) {
       return;
@@ -50,5 +62,5 @@ export const usePatientProfileModel = () => {
       service: getPatientProfileServiceName(patientProfile),
     });
   }, []);
-  return {save, getById, deleteById};
+  return {save, getById, getAllByIds, deleteById};
 };

@@ -8,7 +8,7 @@ SQLite.enablePromise(true);
 
 const AppDataSource = new DataSource({
   type: 'react-native',
-  database: 'myapp5.db',
+  database: 'myapp6.db',
   location: 'default',
   driver: SQLite,
   entities: [Document, Consultation, PatientProfile],

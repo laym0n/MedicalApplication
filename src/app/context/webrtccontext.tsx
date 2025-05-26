@@ -3,7 +3,7 @@ import {
   RTCPeerConnection,
 } from 'react-native-webrtc';
 import RTCDataChannel from 'react-native-webrtc/lib/typescript/RTCDataChannel';
-import {P2PConnectionEstablishPayload} from '@widget/documentrequestmodal/types';
+import {P2PConnectionEstablishPayload, P2pPayload} from '@widget/documentrequestmodal/types';
 
 interface WebRTCContextProps {
   webSocketRef: RefObject<WebSocket | undefined>;
@@ -12,7 +12,7 @@ interface WebRTCContextProps {
   sendViaWebSocketRef: RefObject<
     ((data: P2PConnectionEstablishPayload) => Promise<void>) | undefined
   >;
-  sendViaDataChannelRef: RefObject<((data: any) => Promise<void>) | undefined>;
+  sendViaDataChannelRef: RefObject<((data: P2pPayload) => Promise<void>) | undefined>;
   lastReceivedOfferRef: RefObject<P2PConnectionEstablishPayload | undefined>;
 }
 

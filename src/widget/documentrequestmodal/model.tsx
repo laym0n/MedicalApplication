@@ -1,20 +1,19 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useP2PConnection} from './wsapi';
 import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
-import Toast from 'react-native-toast-message';
-import {useUpdateConsultationPrescription} from './api';
-import {P2PConnectionEstablishPayload, PrescriptionPayload} from './types';
+import {P2PConnectionEstablishPayload} from './types';
 import {useCurrentUserProfileContext} from '@app/context/profilecontext';
-import { Consultation } from '@shared/db/entity/consultation';
-import 'react-native-get-random-values';
-import CryptoJS from 'crypto-js';
-import { useConsultationModel } from '@shared/model/consultationmodel';
+import {Consultation} from '@shared/db/entity/consultation';
+import {useConsultationModel} from '@shared/model/consultationmodel';
+import {PatientProfile} from '@shared/db/entity/patientprofile';
+import { usePatientProfileModel } from '@shared/model/patientprofilemodel';
 
 export const useSendDocument = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const selectedDocumentIdRef = useRef<number | undefined>(undefined);
+  const [patientProfiles, setPatientProfiles] = useState<PatientProfile[]>([]);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [offerPayload, setOfferPayload] =
     useState<P2PConnectionEstablishPayload | null>(null);
 
@@ -24,10 +23,12 @@ export const useSendDocument = () => {
     }
     Document.find().then(newDocuments => {
       setDocuments(newDocuments);
-      if (newDocuments.length === 0) {
-        return;
-      }
-      selectedDocumentIdRef.current = newDocuments[0].id;
+    });
+    PatientProfile.find().then(newPatientProfiles => {
+      setPatientProfiles(newPatientProfiles);
+    });
+    Consultation.find().then(newConsultations => {
+      setConsultations(newConsultations);
     });
   }, [visible]);
 
@@ -47,11 +48,12 @@ export const useSendDocument = () => {
   const {
     connectViaWebSocket,
     disconnectViaWebSocket,
-    sendDocumentViaP2P,
-    sendReadyToReceiveFile,
-    closeP2PConnection,
     createNewPeerConnection,
-    sendReadyToReceivePrescription,
+    sendReadyToSendData,
+    sendDocumentViaP2p,
+    sendConsultationViaP2p,
+    sendPatientProfileViaP2p,
+    sendEOFViaP2P,
   } = useP2PConnection(handleReceivedOffer);
 
   const currentUserContext = useCurrentUserProfileContext();
@@ -69,92 +71,67 @@ export const useSendDocument = () => {
 
   const onIgnore = useCallback(() => setVisible(false), []);
 
-  const {readDocument, saveFile} = useDocumentsModel();
-  const onSend = useCallback(() => {
-    if (!selectedDocumentIdRef.current) {
-      return;
-    }
-    const selectedDocument = documents.find(
-      document => document.id === selectedDocumentIdRef.current,
-    );
-    if (!selectedDocument) {
-      return;
-    }
-    return readDocument(selectedDocument)
-      .then(async pureDocument => {
-        await createNewPeerConnection();
-        await sendDocumentViaP2P(pureDocument!, selectedDocument);
-      })
-      .then(() => setVisible(false))
-      .catch(console.error);
-  }, [createNewPeerConnection, documents, readDocument, sendDocumentViaP2P]);
-  const onReadyToReceiveFile = useCallback(() => {
-    const onDocumentRecived = ({
-      pureFile,
-      document,
-    }: {
-      pureFile: string;
-      document: Document;
+  const {readDocument} = useDocumentsModel();
+  const {getAllByIds: getAllConsultationsByIds} = useConsultationModel();
+  const {getAllByIds: getAllPatientProfilesByIds} = usePatientProfileModel();
+  const onSend = useCallback(
+    async (selectedIds: {
+      documentIds: string[];
+      profileIds: string[];
+      consultationIds: string[];
     }) => {
-      saveFile(pureFile, document)
-        .then(() =>
-          Toast.show({
-            type: 'success',
-            position: 'bottom',
-            text1: 'Файл успешно сохранён!',
-            visibilityTime: 3000,
-          }),
-        )
-        .then(() => closeP2PConnection())
-        .then(() => setVisible(false))
-        .catch(console.error);
-    };
-    return createNewPeerConnection(onDocumentRecived)
-      .then(() => sendReadyToReceiveFile())
-      .catch(console.error);
-  }, [
-    closeP2PConnection,
-    createNewPeerConnection,
-    saveFile,
-    sendReadyToReceiveFile,
-  ]);
+      if (
+        selectedIds.consultationIds.length === 0 &&
+        selectedIds.documentIds.length === 0 &&
+        selectedIds.profileIds.length === 0
+      ) {
+        return;
+      }
+      await createNewPeerConnection();
+      await sendReadyToSendData();
+      let selectedDocuments: Document[] = [];
+      if (selectedIds.documentIds.length !== 0) {
+        selectedDocuments = documents.filter(document =>
+          selectedIds.documentIds.includes(document.id),
+        );
+      }
+      for (const document of selectedDocuments) {
+        const pureFile = await readDocument(document);
+        await sendDocumentViaP2p(pureFile!, document);
+      }
+      let selectedPatientProfiles: PatientProfile[] = [];
+      if (selectedIds.profileIds.length !== 0) {
+        selectedPatientProfiles = await getAllPatientProfilesByIds(selectedIds.profileIds);
+      }
+      for (const patientProfile of selectedPatientProfiles) {
+        await sendPatientProfileViaP2p(patientProfile);
+      }
+      let selectedConsultations: Consultation[] = [];
+      if (selectedIds.consultationIds.length !== 0) {
+        selectedConsultations = await getAllConsultationsByIds(selectedIds.consultationIds);
+      }
+      for (const consultation of selectedConsultations) {
+        await sendConsultationViaP2p(consultation);
+      }
+      await sendEOFViaP2P();
+      setVisible(false);
+    },
+    [createNewPeerConnection, documents, getAllConsultationsByIds, getAllPatientProfilesByIds, readDocument, sendConsultationViaP2p, sendDocumentViaP2p, sendEOFViaP2P, sendPatientProfileViaP2p, sendReadyToSendData],
+  );
 
-  const {save: saveConsultation} = useConsultationModel();
-  const {mutateAsync: updateConsultationPrescriptionAsync} =
-    useUpdateConsultationPrescription();
-  const onReadyToReceivePrescription = useCallback(() => {
-    const onPrescriptionRecived = ({
-      prescription,
-    }: {
-      prescription: PrescriptionPayload;
-    }) => {
-      const masterKey = currentUserContext?.masterKey;
-      const encryptedPrescription = CryptoJS.AES.encrypt(prescription.prescription, masterKey!).toString();
-      updateConsultationPrescriptionAsync({
-        consultationId: prescription.consultationId,
-        prescription: {prescription: encryptedPrescription},
-      })
-        .then((record) => {
-          const newConsultation = new Consultation();
-          newConsultation.transactionId = record.txId!;
-          newConsultation.data = prescription.prescription;
-          return saveConsultation(newConsultation);
-        })
-        .catch(reason => console.error(reason))
-        .finally(() => setVisible(false));
-    };
-    return createNewPeerConnection(undefined, onPrescriptionRecived)
-      .then(() => sendReadyToReceivePrescription())
-      .catch(console.error);
-  }, [createNewPeerConnection, currentUserContext?.masterKey, saveConsultation, sendReadyToReceivePrescription, updateConsultationPrescriptionAsync]);
+  const onReadyToReceiveConsultationResults = useCallback(
+    () => {
+    },
+    [],
+  );
   return {
     visible,
     documents,
+    patientProfiles,
+    consultations,
     onIgnore,
     onSend,
-    onReadyToReceiveFile,
-    onReadyToReceivePrescription,
-    selectedDocumentIdRef,
+    onReadyToReceiveConsultationResults,
     offerPayload,
   };
 };

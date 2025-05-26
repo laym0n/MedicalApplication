@@ -16,14 +16,18 @@ export class Consultation extends BaseEntity {
 
   @Column({ nullable: false })
   data!: string;
+  @Column({ nullable: false })
+  consultationId!: string;
 
   @BeforeInsert()
   @BeforeUpdate()
   encryptField() {
     this.data = encryptWithKey(this.data, this.encryptionKey);
+    this.consultationId = encryptWithKey(this.consultationId, this.encryptionKey);
   }
 
   decryptFields() {
     this.data = decryptWithKey(this.data, this.encryptionKey);
+    this.consultationId = decryptWithKey(this.consultationId, this.encryptionKey);
   }
 }

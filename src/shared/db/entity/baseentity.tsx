@@ -8,8 +8,8 @@ import {
 } from 'typeorm/browser';
 
 export abstract class BaseEntity extends TypeOrmBaseEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @CreateDateColumn({name: 'created_at'})
   createdAt!: string;
