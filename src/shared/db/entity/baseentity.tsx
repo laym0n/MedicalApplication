@@ -12,14 +12,14 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
   id!: string;
 
   @CreateDateColumn({name: 'created_at'})
-  createdAt!: string;
+  createdAt!: Date;
 
   @VersionColumn({name: 'version'})
   version!: number;
 
   @UpdateDateColumn({name: 'updated_at'})
-  updatedAt!: string;
+  updatedAt!: Date;
 
   @DeleteDateColumn({name: 'deleted_at', nullable: true})
-  deletedAt?: string;
+  deletedAt?: Date;
 }

@@ -4,27 +4,13 @@ import { useDocumentsModel } from '@shared/model/documentmodel';
 import Layout from '@widget/layout/ui';
 import React, {useCallback, useState} from 'react';
 import {
-  Button,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-
-const DocumentCard: React.FC<{document: Document, onDelete: (id: number) => void}> = ({document, onDelete}) => {
-  const navigation = useNavigation();
-  const handleViewPress = useCallback(() => navigation.navigate('DocumentView', { documentId: document.id }), [document.id, navigation]);
-  const handleDeletePress = useCallback(() => onDelete(document.id), [document.id, onDelete]);
-  return (
-    <View style={styles.card}>
-      <Text style={styles.cardText}>{document.name}</Text>
-      <Text style={styles.cardText}>{document.mime}</Text>
-      <Button title="Просмотр" onPress={handleViewPress} />
-      <Button title="Удалить" onPress={handleDeletePress} />
-    </View>
-  );
-};
+import DocumentCard from './DocumentCard';
 
 const DocumentsScreen = () => {
   const navigation = useNavigation();
@@ -39,7 +25,7 @@ const DocumentsScreen = () => {
     [navigation],
   );
   const {deleteDocumentById} = useDocumentsModel();
-  const handleDelete = useCallback((id: number) => {
+  const handleDelete = useCallback((id: string) => {
     deleteDocumentById(id)
       .then(loadDocuments);
   }, [deleteDocumentById, loadDocuments]);
