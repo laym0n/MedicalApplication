@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   card: {

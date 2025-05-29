@@ -3,14 +3,19 @@ import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import Layout from '@widget/layout/ui';
 import React, {useEffect, useState} from 'react';
-import {Dimensions, StyleSheet, View} from 'react-native';
-import { Text } from 'react-native-paper';
+import {
+  StyleSheet,
+  View,
+  ActivityIndicator,
+} from 'react-native';
+import {Text} from 'react-native-paper';
 import Pdf from 'react-native-pdf';
 
 const PdfPreview = ({base64Data}: {base64Data: string}) => {
   const source = {
     uri: `data:application/pdf;base64,${base64Data}`,
   };
+
   return (
     <Pdf
       source={source}
@@ -24,7 +29,7 @@ const PdfPreview = ({base64Data}: {base64Data: string}) => {
         console.log(error);
       }}
       onPressLink={uri => {
-        console.log(`Link presse: ${uri}`);
+        console.log(`Link pressed: ${uri}`);
       }}
       style={styles.pdf}
     />
@@ -33,37 +38,55 @@ const PdfPreview = ({base64Data}: {base64Data: string}) => {
 
 const DocumentViewScreen = () => {
   const route = useRoute();
-  const {documentId} = route.params as {documentId: number};
+  const {documentId} = route.params as {documentId: string};
 
   const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(
     null,
   );
   const [document, setDocument] = useState<Document | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
   const {readDocument} = useDocumentsModel();
+
   useEffect(() => {
     async function LoadDocument() {
       const loadedDocument = await Document.findOneBy({id: documentId});
-      if (!loadedDocument) {
-        return;
-      }
+      if (!loadedDocument) return;
+
       const decryptedFile = await readDocument(loadedDocument);
-      if (!decryptedFile) {
-        return;
-      }
+      if (!decryptedFile) return;
+
       setDecryptedBase64File(decryptedFile);
       setDocument(loadedDocument);
+      setLoading(false);
     }
+
     LoadDocument();
   }, [documentId, readDocument]);
 
   return (
     <Layout>
-      <View style={styles.container}>
-      <Text>{document?.cidId}</Text>
-      <Text>{document?.transactionId}</Text>
-        {decryptedBase64File && <PdfPreview base64Data={decryptedBase64File} />}
-      </View>
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{document?.name}</Text>
+            <Text style={styles.meta}>CID: {document?.cidId || '—'}</Text>
+            <Text style={styles.meta}>
+              TxID: {document?.transactionId || '—'}
+            </Text>
+          </View>
+
+          <View style={styles.pdfContainer}>
+            {decryptedBase64File && (
+              <PdfPreview base64Data={decryptedBase64File} />
+            )}
+          </View>
+        </View>
+      )}
     </Layout>
   );
 };
@@ -71,15 +94,37 @@ const DocumentViewScreen = () => {
 export default DocumentViewScreen;
 
 const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 25,
+    backgroundColor: '#fff',
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+    color: '#222',
+  },
+  meta: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  pdfContainer: {
+    flex: 1,
+    padding: 8,
   },
   pdf: {
     flex: 1,
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
+    width: '100%',
   },
 });
