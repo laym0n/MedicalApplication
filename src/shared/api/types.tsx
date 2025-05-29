@@ -14,10 +14,5 @@ export type ProfilesSearchResponseDto =
 
 export type ConsultationModel = components['schemas']['ConsultationModel'];
 
-export type ConsultationPrescriptionDto = components['schemas']['ConsultationPrescriptionDto'];
-export type UpdateConsultationPrescriptionDto = {
-  consultationId: string;
-  prescription: ConsultationPrescriptionDto;
-};
-
-export type BlockchainRecord = components['schemas']['BlockchainRecord'];
+export type BackUpResult = components['schemas']['BackUpResult'];
+export type BackUpRecord = components['schemas']['BackUpRecord'];

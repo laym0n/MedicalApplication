@@ -178,6 +178,74 @@
                 }
             }
         },
+        "/backup/record": {
+            "post": {
+                "tags": [
+                    "backup-controller"
+                ],
+                "operationId": "create_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BackUpRecord"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BackUpResult"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/backup/file": {
+            "post": {
+                "tags": [
+                    "backup-controller"
+                ],
+                "operationId": "uploadFile",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BackUpResult"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/authentication": {
             "post": {
                 "tags": [
@@ -210,47 +278,6 @@
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/consultation/{id}/prescription": {
-            "patch": {
-                "tags": [
-                    "consultation-controller"
-                ],
-                "operationId": "create_2",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ConsultationPrescriptionDto"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BlockchainRecord"
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -298,6 +325,37 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConsultationSlotInfoDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/consultation/{consultationId}": {
+            "get": {
+                "tags": [
+                    "consultation-controller"
+                ],
+                "operationId": "getConsultationInfo",
+                "parameters": [
+                    {
+                        "name": "consultationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultationModel"
                                 }
                             }
                         }
@@ -593,6 +651,22 @@
                     }
                 }
             },
+            "BackUpRecord": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "string"
+                    }
+                }
+            },
+            "BackUpResult": {
+                "type": "object",
+                "properties": {
+                    "txId": {
+                        "type": "string"
+                    }
+                }
+            },
             "AuthenticationRequest": {
                 "type": "object",
                 "properties": {
@@ -610,22 +684,6 @@
                     "login",
                     "password"
                 ]
-            },
-            "ConsultationPrescriptionDto": {
-                "type": "object",
-                "properties": {
-                    "prescription": {
-                        "type": "string"
-                    }
-                }
-            },
-            "BlockchainRecord": {
-                "type": "object",
-                "properties": {
-                    "txId": {
-                        "type": "string"
-                    }
-                }
             },
             "ConsultationSlotInfoDto": {
                 "type": "object",

@@ -6,9 +6,10 @@ import {
 } from 'typeorm/browser';
 import {BaseEntity} from './baseentity';
 import {encryptWithKey, decryptWithKey} from '@shared/util/crypto-util';
+import { IBackUpable } from './backupable';
 
 @Entity('consultation')
-export class Consultation extends BaseEntity {
+export class Consultation extends BaseEntity implements IBackUpable {
   encryptionKey!: string;
 
   @Column({nullable: true})

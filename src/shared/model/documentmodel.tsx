@@ -7,10 +7,12 @@ import {useCallback} from 'react';
 import RNFS from 'react-native-fs';
 import * as Keychain from 'react-native-keychain';
 import {Document} from '@shared/db/entity/document';
+import useBackupModel from './backupmodel';
 
 const getFileServiceName = (document: Document) => `fileId ${document.id}`;
 
 export const useDocumentsModel = () => {
+  const {backupFile} = useBackupModel();
   const readFile = useCallback(async (uri: string) => {
     const pureFile = await RNFS.readFile(uri, 'base64');
     return {pureFile};
@@ -19,10 +21,10 @@ export const useDocumentsModel = () => {
     const encryptionKey = generateKey();
     const newFileId = document.name + '_' + Date.now();
 
-    const encrypted = encryptWithKey(pureFile, encryptionKey);
+    const encryptedFileContent = encryptWithKey(pureFile, encryptionKey);
 
     const savePath = `${RNFS.DocumentDirectoryPath}/${newFileId}.enc`;
-    await RNFS.writeFile(savePath, encrypted, 'utf8');
+    await RNFS.writeFile(savePath, encryptedFileContent, 'utf8');
     if (document.fileUri) {
       await RNFS.unlink(document.fileUri);
       await Keychain.resetGenericPassword({
@@ -36,7 +38,8 @@ export const useDocumentsModel = () => {
     await Keychain.setGenericPassword(newFileId, encryptionKey, {
       service: getFileServiceName(newDocument),
     });
-  }, []);
+    await backupFile(newDocument, encryptedFileContent);
+  }, [backupFile]);
   const readDocument = useCallback(async (document: Document) => {
     const credentials = await Keychain.getGenericPassword({
       service: getFileServiceName(document),

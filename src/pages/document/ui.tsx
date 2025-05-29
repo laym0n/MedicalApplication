@@ -4,6 +4,7 @@ import {useDocumentsModel} from '@shared/model/documentmodel';
 import Layout from '@widget/layout/ui';
 import React, {useEffect, useState} from 'react';
 import {Dimensions, StyleSheet, View} from 'react-native';
+import { Text } from 'react-native-paper';
 import Pdf from 'react-native-pdf';
 
 const PdfPreview = ({base64Data}: {base64Data: string}) => {
@@ -37,19 +38,21 @@ const DocumentViewScreen = () => {
   const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(
     null,
   );
+  const [document, setDocument] = useState<Document | undefined>(undefined);
 
   const {readDocument} = useDocumentsModel();
   useEffect(() => {
     async function LoadDocument() {
-      const document = await Document.findOneBy({id: documentId});
-      if (!document) {
+      const loadedDocument = await Document.findOneBy({id: documentId});
+      if (!loadedDocument) {
         return;
       }
-      const decryptedFile = await readDocument(document);
+      const decryptedFile = await readDocument(loadedDocument);
       if (!decryptedFile) {
         return;
       }
       setDecryptedBase64File(decryptedFile);
+      setDocument(loadedDocument);
     }
     LoadDocument();
   }, [documentId, readDocument]);
@@ -57,6 +60,8 @@ const DocumentViewScreen = () => {
   return (
     <Layout>
       <View style={styles.container}>
+      <Text>{document?.cidId}</Text>
+      <Text>{document?.transactionId}</Text>
         {decryptedBase64File && <PdfPreview base64Data={decryptedBase64File} />}
       </View>
     </Layout>

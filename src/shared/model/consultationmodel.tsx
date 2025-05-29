@@ -8,7 +8,7 @@ const getConsultationServiceName = (consultation: Consultation) =>
   `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
-  const {backupConsultation} = useBackupModel();
+  const {backupRecord} = useBackupModel();
   const save = useCallback(
     async (consultation: Consultation) => {
       const encryptionKey = generateKey();
@@ -24,9 +24,9 @@ export const useConsultationModel = () => {
         },
       );
       consultation.decryptFields();
-      backupConsultation(newConsultation);
+      backupRecord(newConsultation);
     },
-    [backupConsultation],
+    [backupRecord],
   );
   const getById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});

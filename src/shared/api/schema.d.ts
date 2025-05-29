@@ -68,6 +68,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backup/record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backup/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["uploadFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/authentication": {
         parameters: {
             query?: never;
@@ -100,22 +132,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/consultation/{id}/prescription": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["create_2"];
-        trace?: never;
-    };
     "/consultationslot/{id}": {
         parameters: {
             query?: never;
@@ -125,6 +141,22 @@ export interface paths {
         };
         /** Получить информацию о слоте консультации */
         get: operations["getConsultationSlotInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/consultation/{consultationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getConsultationInfo"];
         put?: never;
         post?: never;
         delete?: never;
@@ -245,16 +277,16 @@ export interface components {
             startDateTime?: string;
             consultationSlot?: components["schemas"]["ConsultationSlotModel"];
         };
+        BackUpRecord: {
+            data?: string;
+        };
+        BackUpResult: {
+            txId?: string;
+        };
         AuthenticationRequest: {
             login: string;
             password: string;
             rememberMe?: boolean;
-        };
-        ConsultationPrescriptionDto: {
-            prescription?: string;
-        };
-        BlockchainRecord: {
-            txId?: string;
         };
         ConsultationSlotInfoDto: {
             consultationSlotModel?: components["schemas"]["ConsultationSlotModel"];
@@ -413,6 +445,57 @@ export interface operations {
             };
         };
     };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackUpRecord"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BackUpResult"];
+                };
+            };
+        };
+    };
+    uploadFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BackUpResult"];
+                };
+            };
+        };
+    };
     authenticate: {
         parameters: {
             query?: never;
@@ -453,32 +536,6 @@ export interface operations {
             };
         };
     };
-    create_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConsultationPrescriptionDto"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["BlockchainRecord"];
-                };
-            };
-        };
-    };
     getConsultationSlotInfo: {
         parameters: {
             query: {
@@ -500,6 +557,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ConsultationSlotInfoDto"];
+                };
+            };
+        };
+    };
+    getConsultationInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                consultationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConsultationModel"];
                 };
             };
         };

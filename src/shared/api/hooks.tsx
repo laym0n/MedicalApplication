@@ -1,11 +1,11 @@
 import {useMutation} from '@tanstack/react-query';
 import {
-  BlockchainRecord,
+  BackUpResult,
   ProfileInfoParams,
   ProfileModel,
   ProfilesSearchRequestDto,
   ProfilesSearchResponseDto,
-  UpdateConsultationPrescriptionDto,
+  BackUpRecord,
 } from './types';
 import {useAxiosInstance} from '@app/context/httpclient';
 
@@ -50,18 +50,45 @@ export const useLogOut = () => {
   });
 };
 
-export const useUpdateConsultationPrescription = () => {
+export const useBackUpRecord = () => {
   const axiosInstance = useAxiosInstance();
   return useMutation<
-    BlockchainRecord,
+    BackUpResult,
     Error,
-    UpdateConsultationPrescriptionDto
+    BackUpRecord
   >({
-    mutationFn: async (params: UpdateConsultationPrescriptionDto) => {
-      const response = await axiosInstance.patch<BlockchainRecord>(
-        `/consultation/${params.consultationId}/prescription`,
-        params.prescription,
+    mutationFn: async (params: BackUpRecord) => {
+      const response = await axiosInstance.post<BackUpResult>(
+        '/backup/record',
+        params,
       );
+      return response.data;
+    },
+  });
+};
+
+export const useBackUpFile = () => {
+  const axiosInstance = useAxiosInstance();
+
+  return useMutation<BackUpResult, Error, { base64: string; fileName: string; mimeType: string }>({
+    mutationFn: async ({ base64, fileName, mimeType }) => {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: `data:${mimeType};base64,${base64}`,
+        name: fileName,
+        type: mimeType,
+      } as any);
+
+      const response = await axiosInstance.post<BackUpResult>(
+        '/backup/file',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
       return response.data;
     },
   });
