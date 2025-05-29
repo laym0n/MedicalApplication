@@ -1,10 +1,8 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { PatientProfile } from '@shared/db/entity/patientprofile';
-import { usePatientProfileModel } from '@shared/model/patientprofilemodel';
 import Layout from '@widget/layout/ui';
-import React, {useCallback, useState} from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,28 +10,28 @@ import {
   View,
 } from 'react-native';
 
-const PatientProfileCard: React.FC<{patientProfile: PatientProfile, onDelete: (id: number) => void}> = ({patientProfile, onDelete}) => {
+const PatientProfileCard: React.FC<{ patientProfile: PatientProfile }> = ({ patientProfile }) => {
   const navigation = useNavigation();
-  const handleViewPress = useCallback(() => navigation.navigate('PatientProfileView', { patientProfileId: patientProfile.id }), [patientProfile.id, navigation]);
-  const handleDeletePress = useCallback(() => {
-    onDelete(patientProfile.id);
-  }, [onDelete, patientProfile.id]);
+
+  const handlePress = useCallback(() => {
+    navigation.navigate('PatientProfileView', { patientProfileId: patientProfile.id });
+  }, [navigation, patientProfile.id]);
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Text style={styles.cardText}>{patientProfile.name}</Text>
-      <Text style={styles.cardText}>{patientProfile.allergies}</Text>
-      <Button title="Просмотр" onPress={handleViewPress} />
-      <Button title="Удалить" onPress={handleDeletePress} />
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const PatientProfilesScreen = () => {
   const navigation = useNavigation();
   const [patientProfiles, setPatientProfiles] = useState<PatientProfile[]>([]);
+
   const loadDocuments = useCallback(() => {
-    PatientProfile.find().then(loadedPatientProfiles => setPatientProfiles(loadedPatientProfiles));
+    PatientProfile.find().then(setPatientProfiles);
   }, []);
+
   useFocusEffect(loadDocuments);
 
   const handleAddNewPatientProfile = useCallback(
@@ -41,19 +39,17 @@ const PatientProfilesScreen = () => {
     [navigation],
   );
 
-  const {deleteById} = usePatientProfileModel();
-
   return (
     <Layout>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
-          {patientProfiles.map(patientProfile => <PatientProfileCard key={patientProfile.id} patientProfile={patientProfile} onDelete={deleteById}/>)}
+          {patientProfiles.map(profile => (
+            <PatientProfileCard key={profile.id} patientProfile={profile} />
+          ))}
         </ScrollView>
 
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText} onPress={handleAddNewPatientProfile}>
-            Добавить новый медицинский профиль
-          </Text>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddNewPatientProfile}>
+          <Text style={styles.addButtonText}>Добавить новый медицинский профиль</Text>
         </TouchableOpacity>
       </View>
     </Layout>
@@ -66,18 +62,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    padding: 10,
-  },
   cardsContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 8,
   },
   card: {
     width: '90%',
@@ -86,13 +74,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 5,
+    elevation: 3,
   },
   cardText: {
     fontSize: 18,
     color: '#333',
+    fontWeight: '500',
   },
   addButton: {
     backgroundColor: '#4CAF50',
@@ -100,6 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
   addButtonText: {
     color: 'white',
