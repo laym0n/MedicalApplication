@@ -3,14 +3,22 @@ import * as Keychain from 'react-native-keychain';
 import {Consultation} from '@shared/db/entity/consultation';
 import {generateKey} from '@shared/util/crypto-util';
 import useBackupModel from './backupmodel';
+import { useGetConsultation, useSearchProfiles } from '@shared/api/hooks';
 
 const getConsultationServiceName = (consultation: Consultation) =>
   `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
   const {backupRecord} = useBackupModel();
+  const {mutateAsync: getConsultationAsync} = useGetConsultation();
+  const {mutateAsync: searchProfilesAsync} = useSearchProfiles(() => {});
   const save = useCallback(
     async (consultation: Consultation) => {
+      const consultationDto = await getConsultationAsync(consultation.consultationId);
+      consultation.userId = consultationDto.doctor!.id!;
+      consultation.specialization = consultationDto.consultationSlot?.specialization?.name!;
+      const searchProfilesResponse = await searchProfilesAsync({filters: {userIds: [consultationDto.doctor!.id!]}});
+      consultation.doctorName = searchProfilesResponse.models![0].name;
       const encryptionKey = generateKey();
 
       consultation.encryptionKey = encryptionKey;
@@ -26,7 +34,7 @@ export const useConsultationModel = () => {
       consultation.decryptFields();
       backupRecord(newConsultation);
     },
-    [backupRecord],
+    [backupRecord, getConsultationAsync, searchProfilesAsync],
   );
   const getById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});

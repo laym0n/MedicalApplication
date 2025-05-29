@@ -6,6 +6,7 @@ import {
   ProfilesSearchRequestDto,
   ProfilesSearchResponseDto,
   BackUpRecord,
+  ConsultationModel,
 } from './types';
 import {useAxiosInstance} from '@app/context/httpclient';
 
@@ -90,6 +91,15 @@ export const useBackUpFile = () => {
       );
 
       return response.data;
+    },
+  });
+};
+
+export const useGetConsultation = () => {
+  const axiosInstance = useAxiosInstance();
+  return useMutation<ConsultationModel, Error, string>({
+    mutationFn: (id: string) => {
+      return axiosInstance.get(`/consultation/${id}`).then((response) => response.data);
     },
   });
 };

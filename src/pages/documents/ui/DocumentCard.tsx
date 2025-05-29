@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Document} from '@shared/db/entity/document';
 import {useNavigation} from '@react-navigation/native';
+import { formatDate } from '@shared/util/data-form';
 
 interface Props {
   document: Document;
@@ -15,11 +16,6 @@ const getIconByMime = (mime: string): string => {
   if (mime.includes('word')) return 'file-word-box';
   if (mime.includes('excel')) return 'file-excel-box';
   return 'file-document-outline';
-};
-
-const formatDate = (date: Date) => {
-  const d = new Date(date);
-  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
 };
 
 const DocumentCard: React.FC<Props> = ({document, onDelete}) => {

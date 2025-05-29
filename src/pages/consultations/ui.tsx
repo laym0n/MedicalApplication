@@ -1,36 +1,47 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Consultation} from '@shared/db/entity/consultation';
+import { formatDate } from '@shared/util/data-form';
 import Layout from '@widget/layout/ui';
 import React, {useCallback, useState} from 'react';
-import {
-  Button,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
+import {Card, Button} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const ConsultationCard: React.FC<{
   consultation: Consultation;
 }> = ({consultation}) => {
   const navigation = useNavigation();
-  const handleViewPress = useCallback(
-    () =>
-      navigation.navigate('ConsultationView', {
-        consultationId: consultation.id,
-      }),
-    [consultation.id, navigation],
-  );
+  const handleViewPress = useCallback(() => {
+    navigation.navigate('ConsultationView', {
+      consultationId: consultation.id,
+    });
+  }, [consultation.id, navigation]);
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardText}>{consultation.transactionId}</Text>
-      <Button title="Просмотр" onPress={handleViewPress} />
-    </View>
+    <Card style={styles.card} mode="outlined" onPress={handleViewPress}>
+      <Card.Title
+        title={consultation.specialization}
+        subtitle={formatDate(consultation.createdAt)}
+        left={props => (
+          <Icon
+            {...props}
+            name="stethoscope"
+            size={32}
+            color="#007AFF"
+            style={{marginLeft: 8}}
+          />
+        )}
+      />
+      <Card.Actions>
+        <Button onPress={handleViewPress}>Просмотр</Button>
+      </Card.Actions>
+    </Card>
   );
 };
 
 const ConsultationsScreen = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
+
   const loadConsultations = useCallback(() => {
     Consultation.find().then(newConsultations =>
       setConsultations(newConsultations),
@@ -54,48 +65,32 @@ const ConsultationsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    padding: 10,
+    paddingHorizontal: 16,
   },
   cardsContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 16,
+    paddingBottom: 100,
   },
   card: {
-    width: '90%',
-    padding: 20,
-    marginVertical: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
+    marginVertical: 8,
+    borderRadius: 12,
   },
-  cardText: {
-    fontSize: 18,
+  transactionLabel: {
+    color: '#666',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  transactionId: {
+    fontSize: 16,
+    fontWeight: '500',
     color: '#333',
   },
-  addButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#007AFF',
   },
 });
 
