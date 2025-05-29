@@ -2,11 +2,19 @@ import * as DocumentPicker from '@react-native-documents/picker';
 import Layout from '@widget/layout/ui';
 import 'react-native-get-random-values';
 import React, {useCallback, useState} from 'react';
-import {Alert, Button, Text, TextInput, View} from 'react-native';
+import {
+  Alert,
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import Toast from 'react-native-toast-message';
-import { useDocumentsModel } from '@shared/model/documentmodel';
-import { Document } from '@shared/db/entity/document';
-import { useNavigation } from '@react-navigation/native';
+import {useDocumentsModel} from '@shared/model/documentmodel';
+import {Document} from '@shared/db/entity/document';
+import {useNavigation} from '@react-navigation/native';
+import {Button, Text, TextInput} from 'react-native-paper';
 
 const DocumentAddScreen = () => {
   const [uri, setUri] = useState<string | undefined>(undefined);
@@ -18,6 +26,7 @@ const DocumentAddScreen = () => {
   const handleSaveFile = useCallback(async () => {
     try {
       if (!uri || !name || !mime) {
+        Alert.alert('Ошибка', 'Пожалуйста, выберите файл и введите имя документа.');
         return;
       }
       const {pureFile} = await readFile(uri);
@@ -58,32 +67,115 @@ const DocumentAddScreen = () => {
   const cancel = useCallback(() => {
     setUri(undefined);
     setName(undefined);
+    setMime(undefined);
   }, []);
 
   return (
     <Layout>
-      <View>
-        <Text>Выберите документ для шифрования:</Text>
-        <Button title="Выбрать файл" onPress={pickFile} />
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>Добавить новый документ</Text>
 
-        {uri && (
-          <View>
-            <Text>Имя документа: {name}</Text>
-            <TextInput
-              placeholder="Введите название документа"
-              value={name}
-              onChangeText={setName}
-            />
+          <Button
+            mode="contained"
+            icon="file-plus"
+            onPress={pickFile}
+            style={styles.pickButton}
+          >
+            Выбрать файл
+          </Button>
+
+          {uri && (
+            <View style={styles.fileInfo}>
+              <Text style={styles.label}>Имя документа</Text>
+              <TextInput
+                mode="outlined"
+                placeholder="Введите название документа"
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
+                autoFocus
+                dense
+              />
+            </View>
+          )}
+
+          <View style={styles.buttonsRow}>
+            <Button
+              mode="contained"
+              onPress={handleSaveFile}
+              disabled={!uri || !name}
+              style={styles.saveButton}
+              icon="content-save"
+            >
+              Сохранить
+            </Button>
+
+            <Button
+              mode="outlined"
+              onPress={cancel}
+              style={styles.cancelButton}
+              icon="cancel"
+            >
+              Отменить
+            </Button>
           </View>
-        )}
-
-        <View>
-          <Button title="Сохранить" onPress={handleSaveFile} disabled={!uri} />
-          <Button title="Отменить" onPress={cancel} />
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Layout>
   );
 };
 
 export default DocumentAddScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingTop: 30,
+    flexGrow: 1,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 20,
+    color: '#222',
+    textAlign: 'center',
+  },
+  pickButton: {
+    marginBottom: 20,
+    paddingVertical: 8,
+  },
+  fileInfo: {
+    marginBottom: 30,
+  },
+  label: {
+    marginBottom: 6,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#444',
+  },
+  input: {
+    backgroundColor: 'white',
+  },
+  buttonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  saveButton: {
+    flex: 1,
+    marginRight: 10,
+    paddingVertical: 6,
+  },
+  cancelButton: {
+    flex: 1,
+    marginLeft: 10,
+    paddingVertical: 6,
+  },
+});
