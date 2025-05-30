@@ -3,8 +3,9 @@ import { DocumentMetaPayload, P2PConnectionEstablishPayload } from '../types';
 import { useDocumentsModel } from '@shared/model/documentmodel';
 import { Document } from '@shared/db/entity/document';
 import { Consultation } from '@shared/db/entity/consultation';
+import { TaskQueue } from '@shared/util/TaskQueue';
 
-const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null) => {
+const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null, promiseQueue: TaskQueue) => {
     const fileRef = useRef<string>(undefined);
     const fileMetaRef = useRef<DocumentMetaPayload>(undefined);
     const { saveFile } = useDocumentsModel();
@@ -16,13 +17,19 @@ const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null) => {
         document.mime = fileMetaRef.current.mime;
         document.name = fileMetaRef.current.name;
         const fileContent = fileRef.current;
-        Consultation.findOneBy({ consultationId: offer!.consultationId! })
-            .then(consultation => {
+        const handleSaveFile = async () => {
+            try {
+                const consultation = await Consultation.findOneBy({ consultationId: offer!.consultationId! });
                 document.consultation = consultation ? consultation : undefined;
-            }).then(() => saveFile(fileContent, document));
+                await saveFile(fileContent, document);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        promiseQueue.push(handleSaveFile);
         fileRef.current = undefined;
         fileMetaRef.current = undefined;
-    }, [offer, saveFile]);
+    }, [offer, promiseQueue, saveFile]);
     const handleReceiveDocumentMetaPayload = useCallback((payload: DocumentMetaPayload) => {
         fileMetaRef.current = payload;
         handleReceivedFile();

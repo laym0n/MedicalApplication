@@ -12,15 +12,17 @@ import { usePatientProfileModel } from '@shared/model/patientprofilemodel';
 import { useCurrentUserProfileContext } from '@app/context/profilecontext';
 import useConsultationHandler from './consultationhandler';
 import { Permission } from '@shared/db/entity/permission';
+import { TaskQueue } from '@shared/util/TaskQueue';
 
 const useDataExchange = () => {
     const [offerPayload, setOfferPayload] =
         useState<P2PConnectionEstablishPayload | null>(null);
-    const { handleReceiveFileDataPayload, handleReceiveDocumentMetaPayload } = useDocumentHandler(offerPayload);
+    const {current: promiseQueue} = useRef<TaskQueue>(new TaskQueue());
+    const { handleReceiveFileDataPayload, handleReceiveDocumentMetaPayload } = useDocumentHandler(offerPayload, promiseQueue);
     const documentHandler = useP2PPayloadHandler('DOCUMENT', handleReceiveFileDataPayload);
     const documentMetaHandler = useP2PPayloadHandler('DOCUMENT_META', handleReceiveDocumentMetaPayload);
 
-    const { handleReceiveConsultationPayload } = useConsultationHandler(offerPayload);
+    const { handleReceiveConsultationPayload } = useConsultationHandler(offerPayload, promiseQueue);
     const consultationHandler = useP2PPayloadHandler('CONSULTATION', handleReceiveConsultationPayload);
 
     const closeP2pConnectionRef = useRef<() => void>(() => { });
@@ -30,8 +32,10 @@ const useDataExchange = () => {
     }, []);
     const eofHandler = useP2PPayloadHandler('EOF', handleEOF);
 
-    const p2pPayloadHandler = useCallback((p2pPayload: P2pPayload) => {
-        [documentHandler, documentMetaHandler, eofHandler, consultationHandler].forEach(payloadHandler => payloadHandler(p2pPayload));
+    const p2pPayloadHandler = useCallback(async (p2pPayload: P2pPayload) => {
+        for (const payloadHandler of [documentHandler, documentMetaHandler, eofHandler, consultationHandler]) {
+            await payloadHandler(p2pPayload);
+        }
     }, [documentHandler, documentMetaHandler, eofHandler, consultationHandler]);
 
     const [visible, setVisible] = useState<boolean>(false);

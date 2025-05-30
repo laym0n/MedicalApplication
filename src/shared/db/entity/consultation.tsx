@@ -31,10 +31,6 @@ export class Consultation extends BaseEntity implements IBackUpable {
   @BeforeUpdate()
   encryptField() {
     this.data = encryptWithKey(this.data, this.encryptionKey);
-    this.consultationId = encryptWithKey(
-      this.consultationId,
-      this.encryptionKey,
-    );
     this.userId = encryptWithKey(this.userId, this.encryptionKey);
     if (this.doctorName) {
       this.doctorName = encryptWithKey(this.doctorName, this.encryptionKey);
@@ -43,10 +39,6 @@ export class Consultation extends BaseEntity implements IBackUpable {
 
   decryptFields() {
     this.data = decryptWithKey(this.data, this.encryptionKey);
-    this.consultationId = decryptWithKey(
-      this.consultationId,
-      this.encryptionKey,
-    );
     this.userId = decryptWithKey(this.userId, this.encryptionKey);
     if (this.doctorName) {
       this.doctorName = decryptWithKey(this.doctorName, this.encryptionKey);
