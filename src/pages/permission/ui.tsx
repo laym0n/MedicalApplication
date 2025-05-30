@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Text, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { Text, ScrollView, StyleSheet, View } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import { Permission } from '@shared/db/entity/permission';
 import { formatDate } from '@shared/util/data-form';
 import DocumentCard from '@widget/DocumentCard';
 import ConsultationCard from '@widget/ConsultationCard';
+import PatientProfileCard from '@widget/PatientProfileCard';
 
 const PermissionViewScreen = () => {
   const route = useRoute();
-  const navigation = useNavigation();
   const { permissionId } = route.params as { permissionId: string };
 
   const [permission, setPermission] = useState<Permission | null>(null);
@@ -45,14 +45,7 @@ const PermissionViewScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Профили пациентов</Text>
           {permission.patientProfiles.map((profile) => (
-            <TouchableOpacity
-              key={profile.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('PatientProfileView', { profileId: profile.id })}
-            >
-              <Text style={styles.cardTitle}>{profile.name}</Text>
-              <Text style={styles.cardSubtitle}>Профиль ID: {profile.id}</Text>
-            </TouchableOpacity>
+            <PatientProfileCard key={profile.id} patientProfile={profile}  />
           ))}
         </View>
       )}
@@ -92,27 +85,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 12,
     color: '#333',
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#777',
-    marginTop: 4,
   },
 });
 
