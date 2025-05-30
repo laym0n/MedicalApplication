@@ -1,46 +1,82 @@
-import React, {useEffect, useState} from 'react';
-import {Text, ScrollView, StyleSheet} from 'react-native';
-import {useRoute} from '@react-navigation/native';
-import {Permission} from '@shared/db/entity/permission';
+import React, { useEffect, useState } from 'react';
+import { Text, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Permission } from '@shared/db/entity/permission';
+import { formatDate } from '@shared/util/data-form';
 
 const PermissionViewScreen = () => {
   const route = useRoute();
-  const {permissionId} = route.params as {permissionId: string};
+  const navigation = useNavigation();
+  const { permissionId } = route.params as { permissionId: string };
 
   const [permission, setPermission] = useState<Permission | null>(null);
+
   useEffect(() => {
     Permission.findOne({
-      where: {id: permissionId},
+      where: { id: permissionId },
       relations: ['documents', 'patientProfiles', 'consultations'],
     }).then(setPermission);
   }, [permissionId]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Дата выдачи доступа:</Text>
-      <Text style={styles.value}>{permission?.createdAt.toString()}</Text>
+      <View style={styles.section}>
+        <Text style={styles.label}>Дата выдачи доступа:</Text>
+        <Text style={styles.value}>{formatDate(permission?.createdAt)}</Text>
 
-      <Text style={styles.label}>Дата выдачи завершения:</Text>
-      <Text style={styles.value}>{permission?.endDate?.toString()}</Text>
+        <Text style={styles.label}>Доступ до:</Text>
+        <Text style={styles.value}>
+          {formatDate(permission?.endDate || permission?.createdAt)}
+        </Text>
+      </View>
 
-      {permission?.documents?.map(document => (
-        <>
-          <Text style={styles.label}>Документ:</Text>
-          <Text style={styles.value}>{document.name}</Text>
-        </>
-      ))}
-      {permission?.patientProfiles?.map(patientProfile => (
-        <>
-          <Text style={styles.label}>Медицинский профиль:</Text>
-          <Text style={styles.value}>{patientProfile.name}</Text>
-        </>
-      ))}
-      {permission?.consultations?.map(consultation => (
-        <>
-          <Text style={styles.label}>Результат встречи:</Text>
-          <Text style={styles.value}>{consultation.id}</Text>
-        </>
-      ))}
+      {!!permission?.documents?.length && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Документы</Text>
+          {permission.documents.map((doc) => (
+            <TouchableOpacity
+              key={doc.id}
+              style={styles.card}
+              onPress={() => navigation.navigate('DocumentView', { documentId: doc.id })}
+            >
+              <Text style={styles.cardTitle}>{doc.name}</Text>
+              <Text style={styles.cardSubtitle}>Документ ID: {doc.id}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {!!permission?.patientProfiles?.length && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Профили пациентов</Text>
+          {permission.patientProfiles.map((profile) => (
+            <TouchableOpacity
+              key={profile.id}
+              style={styles.card}
+              onPress={() => navigation.navigate('PatientProfileView', { profileId: profile.id })}
+            >
+              <Text style={styles.cardTitle}>{profile.name}</Text>
+              <Text style={styles.cardSubtitle}>Профиль ID: {profile.id}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {!!permission?.consultations?.length && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Консультации</Text>
+          {permission.consultations.map((consultation) => (
+            <TouchableOpacity
+              key={consultation.id}
+              style={styles.card}
+              onPress={() => navigation.navigate('ConsultationView', { consultationId: consultation.id })}
+            >
+              <Text style={styles.cardTitle}>Консультация</Text>
+              <Text style={styles.cardSubtitle}>ID: {consultation.id}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -49,13 +85,46 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
   },
+  section: {
+    marginBottom: 24,
+  },
   label: {
-    fontWeight: 'bold',
-    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    marginBottom: 4,
   },
   value: {
     fontSize: 16,
+    color: '#222',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
     color: '#333',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#777',
+    marginTop: 4,
   },
 });
 
