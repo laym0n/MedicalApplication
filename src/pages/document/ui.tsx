@@ -1,17 +1,18 @@
-import {useRoute} from '@react-navigation/native';
-import {Document} from '@shared/db/entity/document';
-import {useDocumentsModel} from '@shared/model/documentmodel';
+import { useRoute } from '@react-navigation/native';
+import { Document } from '@shared/db/entity/document';
+import { useDocumentsModel } from '@shared/model/documentmodel';
 import Layout from '@widget/layout/ui';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import Pdf from 'react-native-pdf';
 
-const PdfPreview = ({base64Data}: {base64Data: string}) => {
+const PdfPreview = ({ base64Data }: { base64Data: string }) => {
   const source = {
     uri: `data:application/pdf;base64,${base64Data}`,
   };
@@ -19,16 +20,16 @@ const PdfPreview = ({base64Data}: {base64Data: string}) => {
   return (
     <Pdf
       source={source}
-      onLoadComplete={numberOfPages => {
+      onLoadComplete={(numberOfPages) => {
         console.log(`number of pages: ${numberOfPages}`);
       }}
-      onPageChanged={page => {
+      onPageChanged={(page) => {
         console.log(`current page: ${page}`);
       }}
-      onError={error => {
+      onError={(error) => {
         console.log(error);
       }}
-      onPressLink={uri => {
+      onPressLink={(uri) => {
         console.log(`Link pressed: ${uri}`);
       }}
       style={styles.pdf}
@@ -38,19 +39,17 @@ const PdfPreview = ({base64Data}: {base64Data: string}) => {
 
 const DocumentViewScreen = () => {
   const route = useRoute();
-  const {documentId} = route.params as {documentId: string};
+  const { documentId } = route.params as { documentId: string };
 
-  const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(
-    null,
-  );
+  const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(null);
   const [document, setDocument] = useState<Document | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
-  const {readDocument} = useDocumentsModel();
+  const { readDocument } = useDocumentsModel();
 
   useEffect(() => {
     async function LoadDocument() {
-      const loadedDocument = await Document.findOneBy({id: documentId});
+      const loadedDocument = await Document.findOneBy({ id: documentId });
       if (!loadedDocument) return;
 
       const decryptedFile = await readDocument(loadedDocument);
@@ -71,21 +70,17 @@ const DocumentViewScreen = () => {
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
       ) : (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Text style={styles.title}>{document?.name}</Text>
             <Text style={styles.meta}>CID: {document?.cidId || '—'}</Text>
-            <Text style={styles.meta}>
-              TxID: {document?.transactionId || '—'}
-            </Text>
+            <Text style={styles.meta}>TxID: {document?.transactionId || '—'}</Text>
           </View>
 
           <View style={styles.pdfContainer}>
-            {decryptedBase64File && (
-              <PdfPreview base64Data={decryptedBase64File} />
-            )}
+            {decryptedBase64File && <PdfPreview base64Data={decryptedBase64File} />}
           </View>
-        </View>
+        </ScrollView>
       )}
     </Layout>
   );
@@ -99,14 +94,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+  scrollContent: {
+    paddingBottom: 24,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
     borderColor: '#eee',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 20,
@@ -120,8 +115,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   pdfContainer: {
-    flex: 1,
     padding: 8,
+    height: 600,
   },
   pdf: {
     flex: 1,
