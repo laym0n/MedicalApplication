@@ -13,7 +13,7 @@ const AppDataSource = new DataSource({
   location: 'default',
   driver: SQLite,
   entities: [Document, Consultation, PatientProfile, Permission],
-  synchronize: true, // Только в dev!
+  synchronize: true,
 });
 
 export async function initDatabase() {

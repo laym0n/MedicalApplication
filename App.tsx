@@ -1,5 +1,4 @@
 import '@app/config/DatabaseConfig';
-import {initDatabase} from '@app/config/DatabaseConfig';
 import '@app/config/ReactotronConfig';
 import {
   BlockChainAxiosContext,
@@ -18,6 +17,7 @@ import PatientProfileAddScreen from '@pages/patientprofileadd/ui';
 import PermissionViewScreen from '@pages/permission/ui';
 import PermissionsScreen from '@pages/permissions/ui';
 import SettingsScreen from '@pages/settings';
+import SplashScreen from '@pages/splash';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
@@ -28,7 +28,6 @@ import 'reflect-metadata';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
-initDatabase();
 
 function App(): React.JSX.Element {
   return (
@@ -41,8 +40,9 @@ function App(): React.JSX.Element {
                 <CurrentUserProfileContextProvider>
                   <WebRTCContextProvider>
                     <NavigationContainer>
-                      <Stack.Navigator initialRouteName="Home">
+                      <Stack.Navigator initialRouteName="Splash">
                         <Stack.Screen name="Home" component={HomeScreen} />
+                        <Stack.Screen name="Splash" component={SplashScreen} />
                         <Stack.Screen
                           name="DocumentView"
                           component={DocumentViewScreen}
