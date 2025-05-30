@@ -9,6 +9,8 @@ export class Permission extends BaseEntity {
   @Column({nullable: false})
   userId!: string;
   @Column({nullable: true})
+  userName: string | undefined;
+  @Column({nullable: true})
   endDate?: Date;
   @ManyToMany(() => Document, {nullable: true})
   @JoinTable()
