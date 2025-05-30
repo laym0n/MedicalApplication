@@ -1,4 +1,3 @@
-import { components } from '@shared/api/schema';
 import {ProfileModel} from '@shared/api/types';
 import { Gender } from '@shared/db/entity/enum';
 
@@ -13,10 +12,10 @@ export interface P2PConnectionEstablishPayload {
   offer?: any;
   answer?: any;
   candidate?: any;
+  consultationId?: string;
 }
 
 export interface ConsultationPayload {
-  consultationId: string;
   data: string;
 }
 

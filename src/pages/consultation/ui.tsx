@@ -1,10 +1,12 @@
-import { useRoute } from '@react-navigation/native';
-import { Consultation } from '@shared/db/entity/consultation';
+import {useRoute} from '@react-navigation/native';
+import {Consultation} from '@shared/db/entity/consultation';
 import Layout from '@widget/layout/ui';
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Card, Text, ActivityIndicator, Divider } from 'react-native-paper';
-import { useConsultationModel } from '@shared/model/consultationmodel';
+import React, {useEffect, useState} from 'react';
+import {ScrollView, StyleSheet, View} from 'react-native';
+import {Card, Text, ActivityIndicator, Divider} from 'react-native-paper';
+import {useConsultationModel} from '@shared/model/consultationmodel';
+import {Document} from '@shared/db/entity/document';
+import DocumentCard from '@widget/DocumentCard';
 
 interface ConsultationProps {
   consultationId: string;
@@ -12,13 +14,20 @@ interface ConsultationProps {
 
 const ConsultationViewScreen = () => {
   const route = useRoute();
-  const { consultationId } = route.params as ConsultationProps;
+  const {consultationId} = route.params as ConsultationProps;
 
-  const [consultation, setConsultation] = useState<Consultation | undefined>(undefined);
-  const { getById } = useConsultationModel();
+  const [consultation, setConsultation] = useState<Consultation | undefined>(
+    undefined,
+  );
+  const {getById} = useConsultationModel();
+
+  const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
     getById(consultationId).then(setConsultation);
+    Document.find({
+      where: {consultation: {id: consultationId}},
+    }).then(setDocuments);
   }, [consultationId, getById]);
 
   if (!consultation) {
@@ -59,6 +68,12 @@ const ConsultationViewScreen = () => {
             <Text style={styles.value}>{consultation.consultationId}</Text>
           </Card.Content>
         </Card>
+        {documents.map(doc => (
+          <>
+            <Text style={styles.sectionTitle}>Связанные документы</Text>
+            <DocumentCard key={doc.id} document={doc} />
+          </>
+        ))}
       </ScrollView>
     </Layout>
   );
@@ -90,6 +105,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#555',
     marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 24,
+    marginBottom: 12,
+    color: '#222',
   },
   divider: {
     marginVertical: 16,

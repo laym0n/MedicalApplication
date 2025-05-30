@@ -1,18 +1,14 @@
-import { useRoute } from '@react-navigation/native';
-import { Document } from '@shared/db/entity/document';
-import { useDocumentsModel } from '@shared/model/documentmodel';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {Document} from '@shared/db/entity/document';
+import {useDocumentsModel} from '@shared/model/documentmodel';
+import { formatDate } from '@shared/util/data-form';
 import Layout from '@widget/layout/ui';
-import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
-import { Text } from 'react-native-paper';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View, ActivityIndicator, ScrollView, TouchableOpacity} from 'react-native';
+import {Text} from 'react-native-paper';
 import Pdf from 'react-native-pdf';
 
-const PdfPreview = ({ base64Data }: { base64Data: string }) => {
+const PdfPreview = ({base64Data}: {base64Data: string}) => {
   const source = {
     uri: `data:application/pdf;base64,${base64Data}`,
   };
@@ -20,16 +16,16 @@ const PdfPreview = ({ base64Data }: { base64Data: string }) => {
   return (
     <Pdf
       source={source}
-      onLoadComplete={(numberOfPages) => {
+      onLoadComplete={numberOfPages => {
         console.log(`number of pages: ${numberOfPages}`);
       }}
-      onPageChanged={(page) => {
+      onPageChanged={page => {
         console.log(`current page: ${page}`);
       }}
-      onError={(error) => {
+      onError={error => {
         console.log(error);
       }}
-      onPressLink={(uri) => {
+      onPressLink={uri => {
         console.log(`Link pressed: ${uri}`);
       }}
       style={styles.pdf}
@@ -39,21 +35,27 @@ const PdfPreview = ({ base64Data }: { base64Data: string }) => {
 
 const DocumentViewScreen = () => {
   const route = useRoute();
-  const { documentId } = route.params as { documentId: string };
+  const {documentId} = route.params as {documentId: string};
 
-  const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(null);
+  const [decryptedBase64File, setDecryptedBase64File] = useState<string | null>(
+    null,
+  );
   const [document, setDocument] = useState<Document | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
-  const { readDocument } = useDocumentsModel();
+  const {readDocument} = useDocumentsModel();
+  const navigation = useNavigation();
 
   useEffect(() => {
     async function LoadDocument() {
-      const loadedDocument = await Document.findOneBy({ id: documentId });
-      if (!loadedDocument) return;
+      const loadedDocument = await Document.findOne({
+        where: { id: documentId },
+        relations: ['consultation'],
+      });
+      if (!loadedDocument) {return;}
 
       const decryptedFile = await readDocument(loadedDocument);
-      if (!decryptedFile) return;
+      if (!decryptedFile) {return;}
 
       setDecryptedBase64File(decryptedFile);
       setDocument(loadedDocument);
@@ -74,12 +76,29 @@ const DocumentViewScreen = () => {
           <View style={styles.header}>
             <Text style={styles.title}>{document?.name}</Text>
             <Text style={styles.meta}>CID: {document?.cidId || '—'}</Text>
-            <Text style={styles.meta}>TxID: {document?.transactionId || '—'}</Text>
+            <Text style={styles.meta}>
+              TxID: {document?.transactionId || '—'}
+            </Text>
           </View>
 
           <View style={styles.pdfContainer}>
-            {decryptedBase64File && <PdfPreview base64Data={decryptedBase64File} />}
+            {decryptedBase64File && (
+              <PdfPreview base64Data={decryptedBase64File} />
+            )}
           </View>
+          {document?.consultation && (
+            <TouchableOpacity
+              style={styles.consultationCard}
+              onPress={() =>
+                navigation.navigate('ConsultationView', {
+                  consultationId: document.consultation.id,
+                })
+              }>
+              <Text style={styles.consultationTitle}>Консультация</Text>
+              <Text style={styles.consultationMeta}>Дата консультации: {formatDate(document?.consultation.createdAt)}</Text>
+              <Text style={styles.consultationMeta}>Специализация: {document?.consultation.specialization}</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
     </Layout>
@@ -121,5 +140,22 @@ const styles = StyleSheet.create({
   pdf: {
     flex: 1,
     width: '100%',
+  },
+  consultationCard: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#F2F2F2',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  consultationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  consultationMeta: {
+    fontSize: 14,
+    color: '#555',
   },
 });

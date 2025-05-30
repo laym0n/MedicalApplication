@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import DocumentCard from './DocumentCard';
+import DocumentCard from '../../../widget/DocumentCard';
 
 const DocumentsScreen = () => {
   const navigation = useNavigation();

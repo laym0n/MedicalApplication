@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Document} from '@shared/db/entity/document';
 import {useNavigation} from '@react-navigation/native';
-import { formatDate } from '@shared/util/data-form';
+import {formatDate} from '@shared/util/data-form';
 
 interface Props {
   document: Document;
@@ -37,11 +37,13 @@ const DocumentCard: React.FC<Props> = ({document, onDelete}) => {
           {formatDate(document.createdAt)}
         </Text>
       </View>
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => onDelete?.(document.id)}>
-        <Icon name="trash-can-outline" size={24} color="#FF3B30" />
-      </TouchableOpacity>
+      {onDelete && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => onDelete(document.id)}>
+          <Icon name="trash-can-outline" size={24} color="#FF3B30" />
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };

@@ -14,11 +14,13 @@ import useConsultationHandler from './consultationhandler';
 import { Permission } from '@shared/db/entity/permission';
 
 const useDataExchange = () => {
-    const { handleReceiveFileDataPayload, handleReceiveDocumentMetaPayload } = useDocumentHandler();
+    const [offerPayload, setOfferPayload] =
+        useState<P2PConnectionEstablishPayload | null>(null);
+    const { handleReceiveFileDataPayload, handleReceiveDocumentMetaPayload } = useDocumentHandler(offerPayload);
     const documentHandler = useP2PPayloadHandler('DOCUMENT', handleReceiveFileDataPayload);
     const documentMetaHandler = useP2PPayloadHandler('DOCUMENT_META', handleReceiveDocumentMetaPayload);
 
-    const { handleReceiveConsultationPayload } = useConsultationHandler();
+    const { handleReceiveConsultationPayload } = useConsultationHandler(offerPayload);
     const consultationHandler = useP2PPayloadHandler('CONSULTATION', handleReceiveConsultationPayload);
 
     const closeP2pConnectionRef = useRef<() => void>(() => { });
@@ -36,8 +38,6 @@ const useDataExchange = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [patientProfiles, setPatientProfiles] = useState<PatientProfile[]>([]);
     const [consultations, setConsultations] = useState<Consultation[]>([]);
-    const [offerPayload, setOfferPayload] =
-        useState<P2PConnectionEstablishPayload | null>(null);
 
     useEffect(() => {
         if (!visible) {

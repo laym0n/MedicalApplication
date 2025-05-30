@@ -2,6 +2,8 @@ import {Entity, Column, BeforeInsert, BeforeUpdate} from 'typeorm/browser';
 import {BaseEntity} from './baseentity';
 import {encryptWithKey, decryptWithKey} from '@shared/util/crypto-util';
 import {IBackUpable} from './backupable';
+import {Document} from './document';
+import {OneToMany} from 'typeorm';
 
 @Entity('consultation')
 export class Consultation extends BaseEntity implements IBackUpable {
@@ -20,6 +22,10 @@ export class Consultation extends BaseEntity implements IBackUpable {
   userId!: string;
   @Column({nullable: true})
   doctorName: string | undefined;
+  @OneToMany(() => Document, document => document.consultation, {
+    nullable: true,
+  })
+  documents?: Document[];
 
   @BeforeInsert()
   @BeforeUpdate()
