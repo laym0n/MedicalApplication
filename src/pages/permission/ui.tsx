@@ -3,6 +3,8 @@ import { Text, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-nati
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Permission } from '@shared/db/entity/permission';
 import { formatDate } from '@shared/util/data-form';
+import DocumentCard from '@widget/DocumentCard';
+import ConsultationCard from '@widget/ConsultationCard';
 
 const PermissionViewScreen = () => {
   const route = useRoute();
@@ -34,14 +36,7 @@ const PermissionViewScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Документы</Text>
           {permission.documents.map((doc) => (
-            <TouchableOpacity
-              key={doc.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('DocumentView', { documentId: doc.id })}
-            >
-              <Text style={styles.cardTitle}>{doc.name}</Text>
-              <Text style={styles.cardSubtitle}>Документ ID: {doc.id}</Text>
-            </TouchableOpacity>
+            <DocumentCard key={doc.id} document={doc}/>
           ))}
         </View>
       )}
@@ -66,14 +61,7 @@ const PermissionViewScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Консультации</Text>
           {permission.consultations.map((consultation) => (
-            <TouchableOpacity
-              key={consultation.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('ConsultationView', { consultationId: consultation.id })}
-            >
-              <Text style={styles.cardTitle}>Консультация</Text>
-              <Text style={styles.cardSubtitle}>ID: {consultation.id}</Text>
-            </TouchableOpacity>
+            <ConsultationCard key={consultation.id} consultation={consultation} />
           ))}
         </View>
       )}
