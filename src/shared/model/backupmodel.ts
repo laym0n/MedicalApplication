@@ -22,34 +22,32 @@ const useBackupModel = () => {
     const { getMasterKeyForUser } = useMasterKeyModel();
     const { mutateAsync: backUpRecordAsync } = useBackUpRecord();
     const { mutateAsync: backUpFileAsync } = useBackUpFile();
-    const backupRecord = useCallback(async (record: IBackUpable & BaseEntity) => {
+    const backupRecord = useCallback(async (record: any) => {
         const masterKey = await getMasterKeyForUser(currentUserContext!.currentUserProfile!);
         const encryptedRecordData = encryptWithKey(JSON.stringify(record), masterKey);
         const backUpRecord = await backUpRecordAsync({ data: encryptedRecordData });
-        record.transactionId = backUpRecord.txId!;
-        await record.save();
+        return { transactionId: backUpRecord.txId };
     }, [backUpRecordAsync, currentUserContext, getMasterKeyForUser]);
-    const backupRecordWithSettingsVerify = useCallback(async (record: IBackUpable & BaseEntity) => {
+    const backupRecordWithSettingsVerify = useCallback(async (record: any) => {
         const backupEnabled = await getBackupSettings();
         if (!backupEnabled) {
             return;
         }
-        await backupRecord(record);
+        return await backupRecord(record);
     }, [backupRecord, getBackupSettings]);
-    const backupFile = useCallback(async (record: IBackUpable & IFileBackUpable & BaseEntity, fileBase64Content: string) => {
+    const backupFile = useCallback(async (record: IFileBackUpable, fileBase64Content: string) => {
         const masterKey = await getMasterKeyForUser(currentUserContext!.currentUserProfile!);
         const encryptedFileData = encryptWithKey(fileBase64Content, masterKey);
         const backUpRecord = await backUpFileAsync({ base64: encryptedFileData, fileName: record.fileId, mimeType: record.mime });
-        record.cidId = backUpRecord.txId!;
-        await record.save();
-        await backupRecord(record);
+        const backupData = await backupRecord(record);
+        return { ...backupData, cidId: backUpRecord.txId };
     }, [backUpFileAsync, backupRecord, currentUserContext, getMasterKeyForUser]);
     const backupFileWithSettingsVerify = useCallback(async (record: IBackUpable & IFileBackUpable & BaseEntity, fileBase64Content: string) => {
         const backupEnabled = await getBackupSettings();
         if (!backupEnabled) {
             return;
         }
-        await backupFile(record, fileBase64Content);
+        return await backupFile(record, fileBase64Content);
     }, [backupFile, getBackupSettings]);
     const { mutateAsync: getBackupedRecordAsync } = useGetBackupedRecord();
     const restoreRecord = useCallback(

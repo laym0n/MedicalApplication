@@ -25,7 +25,8 @@ export const useDocumentsModel = () => {
       const savePath = `${RNFS.DocumentDirectoryPath}/${newFileId}.enc`;
       await RNFS.writeFile(savePath, pureFile, 'utf8');
       if (document.fileUri) {
-        await RNFS.unlink(document.fileUri);
+        await RNFS.unlink(document.fileUri)
+          .catch(console.error);
       }
       document.fileUri = savePath;
       document.fileId = newFileId;
@@ -49,10 +50,16 @@ export const useDocumentsModel = () => {
         encryptedFileContent,
         document,
       );
-      await Keychain.setGenericPassword(encryptionKey, pureFile, {
+      await Keychain.setGenericPassword(getFileServiceName(newDocument), encryptionKey, {
         service: getFileServiceName(newDocument),
       });
-      await backupFileWithSettingsVerify(newDocument, encryptedFileContent);
+      const backupData = await backupFileWithSettingsVerify(
+        newDocument,
+        encryptedFileContent,
+      );
+      newDocument.cidId = backupData!.cidId!;
+      newDocument.transactionId = backupData!.transactionId!;
+      await newDocument.save();
     },
     [backupFileWithSettingsVerify, saveDocumentFile],
   );
@@ -63,7 +70,10 @@ export const useDocumentsModel = () => {
         return;
       }
       const encryptedFile = await RNFS.readFile(document.fileUri, 'utf8');
-      await backupFile(document, encryptedFile);
+      const backupData = await backupFile(document, encryptedFile);
+      document.cidId = backupData!.cidId!;
+      document.transactionId = backupData!.transactionId!;
+      await document.save();
     },
     [backupFile],
   );
@@ -102,9 +112,17 @@ export const useDocumentsModel = () => {
       return;
     }
     await Document.delete(documentId);
+    await RNFS.unlink(document.fileUri);
     await Keychain.resetGenericPassword({
       service: getFileServiceName(document),
     });
+  }, []);
+  const deleteFileByDocumentId = useCallback(async (documentId: string) => {
+    const document = await Document.findOneBy({id: documentId});
+    if (document === null) {
+      return;
+    }
+    await RNFS.unlink(document.fileUri);
   }, []);
   return {
     readFile,
@@ -113,5 +131,6 @@ export const useDocumentsModel = () => {
     createDocument,
     readDocument,
     deleteDocumentById,
+    deleteFileByDocumentId,
   };
 };

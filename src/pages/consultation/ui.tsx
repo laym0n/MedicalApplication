@@ -1,9 +1,15 @@
 import {useRoute} from '@react-navigation/native';
 import {Consultation} from '@shared/db/entity/consultation';
 import Layout from '@widget/layout/ui';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import {Card, Text, ActivityIndicator, Divider} from 'react-native-paper';
+import {
+  Card,
+  Text,
+  ActivityIndicator,
+  Divider,
+  Button,
+} from 'react-native-paper';
 import {useConsultationModel} from '@shared/model/consultationmodel';
 import {Document} from '@shared/db/entity/document';
 import DocumentCard from '@widget/DocumentCard';
@@ -19,7 +25,10 @@ const ConsultationViewScreen = () => {
   const [consultation, setConsultation] = useState<Consultation | undefined>(
     undefined,
   );
-  const {getById} = useConsultationModel();
+  const hasBackup = useMemo(() => {
+    return !!consultation?.transactionId;
+  }, [consultation]);
+  const {getById, restore, backup} = useConsultationModel();
 
   const [documents, setDocuments] = useState<Document[]>([]);
 
@@ -29,6 +38,14 @@ const ConsultationViewScreen = () => {
       where: {consultation: {id: consultationId}},
     }).then(setDocuments);
   }, [consultationId, getById]);
+
+  const handleRestoreBackup = useCallback(() => {
+    restore(consultationId).then(() => getById(consultationId)).then(setConsultation);
+  }, [consultationId, getById, restore]);
+
+  const handleCreateBackup = useCallback(() => {
+    backup(consultationId).then(() => getById(consultationId)).then(setConsultation).catch(console.error);
+  }, [backup, consultationId, getById]);
 
   if (!consultation) {
     return (
@@ -67,6 +84,17 @@ const ConsultationViewScreen = () => {
             <Text style={styles.label}>ID консультации:</Text>
             <Text style={styles.value}>{consultation.consultationId}</Text>
           </Card.Content>
+          <Card.Actions>
+            {hasBackup ? (
+              <Button mode="contained" onPress={handleRestoreBackup}>
+                Восстановить из резервной копии
+              </Button>
+            ) : (
+              <Button mode="outlined" onPress={handleCreateBackup}>
+                Сохранить резервную копию
+              </Button>
+            )}
+          </Card.Actions>
         </Card>
         {documents.map(doc => (
           <>

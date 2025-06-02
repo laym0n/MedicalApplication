@@ -3,21 +3,27 @@ import * as Keychain from 'react-native-keychain';
 import {Consultation} from '@shared/db/entity/consultation';
 import {generateKey} from '@shared/util/crypto-util';
 import useBackupModel from './backupmodel';
-import { useGetConsultation, useSearchProfiles } from '@shared/api/hooks';
+import {useGetConsultation, useSearchProfiles} from '@shared/api/hooks';
 
 const getConsultationServiceName = (consultation: Consultation) =>
   `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
-  const {backupRecordWithSettingsVerify} = useBackupModel();
+  const {backupRecordWithSettingsVerify, restoreRecord, backupRecord} =
+    useBackupModel();
   const {mutateAsync: getConsultationAsync} = useGetConsultation();
   const {mutateAsync: searchProfilesAsync} = useSearchProfiles(() => {});
   const save = useCallback(
     async (consultation: Consultation) => {
-      const consultationDto = await getConsultationAsync(consultation.consultationId);
+      const consultationDto = await getConsultationAsync(
+        consultation.consultationId,
+      );
       consultation.userId = consultationDto.doctor!.id!;
-      consultation.specialization = consultationDto.consultationSlot?.specialization?.name!;
-      const searchProfilesResponse = await searchProfilesAsync({filters: {userIds: [consultationDto.doctor!.id!]}});
+      consultation.specialization =
+        consultationDto.consultationSlot?.specialization?.name!;
+      const searchProfilesResponse = await searchProfilesAsync({
+        filters: {userIds: [consultationDto.doctor!.id!]},
+      });
       consultation.doctorName = searchProfilesResponse.models![0].name;
       const encryptionKey = generateKey();
 
@@ -76,5 +82,46 @@ export const useConsultationModel = () => {
       service: getConsultationServiceName(consultation),
     });
   }, []);
-  return {save, getById, getAllByIds, deleteById};
+  const backup = useCallback(
+    async (consultationId: string) => {
+      const consultation = await Consultation.findOneBy({id: consultationId});
+      if (!consultation) {
+        return;
+      }
+      const backupData = await backupRecord(consultation);
+      const decryptedConsultation = await getById(consultationId);
+      decryptedConsultation!.transactionId = backupData.transactionId!;
+      await decryptedConsultation!.save();
+    },
+    [backupRecord, getById],
+  );
+  const restore = useCallback(
+    async (consultationId: string) => {
+      const consultation = await Consultation.findOneBy({id: consultationId});
+      if (!consultation || !consultation.transactionId) {
+        return;
+      }
+      const restoredData = await restoreRecord(
+        Consultation,
+        consultation.transactionId,
+      );
+      consultation.data = restoredData.data;
+      consultation.doctorName = restoredData.doctorName;
+      consultation.consultationId = restoredData.consultationId;
+      consultation.userId = restoredData.userId;
+      consultation.specialization = restoredData.specialization;
+      const credentials = await Keychain.getGenericPassword({
+        service: getConsultationServiceName(consultation),
+      });
+      if (!credentials) {
+        return;
+      }
+      const {password: encryptionKey} = credentials;
+      consultation.encryptionKey = encryptionKey;
+      consultation.decryptFields();
+      consultation.save();
+    },
+    [restoreRecord],
+  );
+  return {save, getById, getAllByIds, deleteById, backup, restore};
 };

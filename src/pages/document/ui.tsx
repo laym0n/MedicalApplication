@@ -42,11 +42,12 @@ const DocumentViewScreen = () => {
   );
   const [document, setDocument] = useState<Document | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [fileError, setFileError] = useState(false);
   const hasBackup = useMemo(() => {
     return !!document?.cidId && !!document?.transactionId;
   }, [document?.cidId, document?.transactionId]);
 
-  const {readDocument} = useDocumentsModel();
+  const {readDocument, deleteFileByDocumentId} = useDocumentsModel();
   const loadDocument = useCallback(async () => {
     const loadedDocument = await Document.findOne({
       where: {id: documentId},
@@ -57,12 +58,19 @@ const DocumentViewScreen = () => {
     }
     setDocument(loadedDocument);
 
-    const decryptedFile = await readDocument(loadedDocument);
-    if (!decryptedFile) {
-      return;
+    try {
+      const decryptedFile = await readDocument(loadedDocument);
+      if (!decryptedFile) {
+        return;
+      }
+      setDecryptedBase64File(decryptedFile);
+      setFileError(false);
+    } catch (e) {
+      console.error(e);
+      setFileError(true);
+    } finally {
+      setLoading(false);
     }
-    setDecryptedBase64File(decryptedFile);
-    setLoading(false);
   }, [documentId, readDocument]);
 
   useEffect(() => {
@@ -105,13 +113,19 @@ const DocumentViewScreen = () => {
                 Сохранить резервную копию
               </Button>
             )}
+            {/* <Button
+              mode="outlined"
+              onPress={() => deleteFileByDocumentId(documentId)}>
+              Удалить
+            </Button> */}
             {document?.consultation && (
               <ConsultationCard consultation={document.consultation} />
             )}
           </View>
 
           <View style={styles.pdfContainer}>
-            {decryptedBase64File && (
+            {fileError && <Text style={styles.title}>Ошибка загрузки документа</Text>}
+            {!fileError && decryptedBase64File && (
               <PdfPreview base64Data={decryptedBase64File} />
             )}
           </View>
