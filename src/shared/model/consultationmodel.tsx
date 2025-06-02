@@ -9,7 +9,7 @@ const getConsultationServiceName = (consultation: Consultation) =>
   `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
-  const {backupRecord} = useBackupModel();
+  const {backupRecordWithSettingsVerify} = useBackupModel();
   const {mutateAsync: getConsultationAsync} = useGetConsultation();
   const {mutateAsync: searchProfilesAsync} = useSearchProfiles(() => {});
   const save = useCallback(
@@ -32,9 +32,9 @@ export const useConsultationModel = () => {
         },
       );
       consultation.decryptFields();
-      backupRecord(newConsultation);
+      backupRecordWithSettingsVerify(newConsultation);
     },
-    [backupRecord, getConsultationAsync, searchProfilesAsync],
+    [backupRecordWithSettingsVerify, getConsultationAsync, searchProfilesAsync],
   );
   const getById = useCallback(async (consultationId: string) => {
     const consultation = await Consultation.findOneBy({id: consultationId});

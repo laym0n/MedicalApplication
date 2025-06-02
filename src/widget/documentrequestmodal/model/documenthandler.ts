@@ -8,7 +8,7 @@ import { TaskQueue } from '@shared/util/TaskQueue';
 const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null, promiseQueue: TaskQueue) => {
     const fileRef = useRef<string>(undefined);
     const fileMetaRef = useRef<DocumentMetaPayload>(undefined);
-    const { saveFile } = useDocumentsModel();
+    const { createDocument } = useDocumentsModel();
     const handleReceivedFile = useCallback(() => {
         if (!fileRef.current || !fileMetaRef.current) {
             return;
@@ -21,7 +21,7 @@ const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null, promise
             try {
                 const consultation = await Consultation.findOneBy({ consultationId: offer!.consultationId! });
                 document.consultation = consultation ? consultation : undefined;
-                await saveFile(fileContent, document);
+                await createDocument(fileContent, document);
             } catch (e) {
                 console.error(e);
             }
@@ -29,7 +29,7 @@ const useDocumentHandler = (offer: P2PConnectionEstablishPayload | null, promise
         promiseQueue.push(handleSaveFile);
         fileRef.current = undefined;
         fileMetaRef.current = undefined;
-    }, [offer, promiseQueue, saveFile]);
+    }, [offer, promiseQueue, createDocument]);
     const handleReceiveDocumentMetaPayload = useCallback((payload: DocumentMetaPayload) => {
         fileMetaRef.current = payload;
         handleReceivedFile();

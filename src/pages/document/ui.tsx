@@ -3,9 +3,9 @@ import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import ConsultationCard from '@widget/ConsultationCard';
 import Layout from '@widget/layout/ui';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View, ActivityIndicator} from 'react-native';
-import {Text} from 'react-native-paper';
+import {Button, Text} from 'react-native-paper';
 import Pdf from 'react-native-pdf';
 
 const PdfPreview = ({base64Data}: {base64Data: string}) => {
@@ -42,31 +42,49 @@ const DocumentViewScreen = () => {
   );
   const [document, setDocument] = useState<Document | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const hasBackup = useMemo(() => {
+    return !!document?.cidId && !!document?.transactionId;
+  }, [document?.cidId, document?.transactionId]);
 
   const {readDocument} = useDocumentsModel();
+  const loadDocument = useCallback(async () => {
+    const loadedDocument = await Document.findOne({
+      where: {id: documentId},
+      relations: ['consultation'],
+    });
+    if (!loadedDocument) {
+      return;
+    }
+    setDocument(loadedDocument);
+
+    const decryptedFile = await readDocument(loadedDocument);
+    if (!decryptedFile) {
+      return;
+    }
+    setDecryptedBase64File(decryptedFile);
+    setLoading(false);
+  }, [documentId, readDocument]);
 
   useEffect(() => {
-    async function LoadDocument() {
-      const loadedDocument = await Document.findOne({
-        where: {id: documentId},
-        relations: ['consultation'],
-      });
-      if (!loadedDocument) {
-        return;
-      }
+    loadDocument();
+  }, [loadDocument]);
 
-      const decryptedFile = await readDocument(loadedDocument);
-      if (!decryptedFile) {
-        return;
-      }
+  const {restoreDocument, backupDocument} = useDocumentsModel();
 
-      setDecryptedBase64File(decryptedFile);
-      setDocument(loadedDocument);
-      setLoading(false);
-    }
+  const handleRestoreBackup = useCallback(() => {
+    restoreDocument(documentId).then(loadDocument);
+  }, [documentId, loadDocument, restoreDocument]);
 
-    LoadDocument();
-  }, [documentId, readDocument]);
+  const handleCreateBackup = useCallback(() => {
+    backupDocument(documentId)
+      .then(() =>
+        Document.findOne({
+          where: {id: documentId},
+          relations: ['consultation'],
+        }),
+      )
+      .then(loadedDocument => setDocument(loadedDocument!));
+  }, [backupDocument, documentId]);
 
   return (
     <Layout>
@@ -78,10 +96,15 @@ const DocumentViewScreen = () => {
         <View style={styles.scrollContent}>
           <View style={styles.header}>
             <Text style={styles.title}>{document?.name}</Text>
-            <Text style={styles.meta}>CID: {document?.cidId || '—'}</Text>
-            <Text style={styles.meta}>
-              TxID: {document?.transactionId || '—'}
-            </Text>
+            {hasBackup ? (
+              <Button mode="contained" onPress={handleRestoreBackup}>
+                Восстановить из резервной копии
+              </Button>
+            ) : (
+              <Button mode="outlined" onPress={handleCreateBackup}>
+                Сохранить резервную копию
+              </Button>
+            )}
             {document?.consultation && (
               <ConsultationCard consultation={document.consultation} />
             )}

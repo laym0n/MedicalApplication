@@ -4,6 +4,10 @@ import {
   BlockChainAxiosContext,
   blockChainAxiosInstance,
 } from '@app/context/blockchainclient';
+import {
+  Web3StorageContext,
+  web3StorageAxiosInstance,
+} from '@app/context/web3storageclient';
 import {AxiosContext, axiosInstance} from '@app/context/httpclient';
 import {CurrentUserProfileContextProvider} from '@app/context/profilecontext';
 import {WebRTCContextProvider} from '@app/context/webrtccontext';
@@ -37,49 +41,54 @@ function App(): React.JSX.Element {
           <QueryClientProvider client={queryClient}>
             <AxiosContext.Provider value={axiosInstance}>
               <BlockChainAxiosContext.Provider value={blockChainAxiosInstance}>
-                <CurrentUserProfileContextProvider>
-                  <WebRTCContextProvider>
-                    <NavigationContainer>
-                      <Stack.Navigator initialRouteName="Splash">
-                        <Stack.Screen name="Home" component={HomeScreen} />
-                        <Stack.Screen name="Splash" component={SplashScreen} />
-                        <Stack.Screen
-                          name="DocumentView"
-                          component={DocumentViewScreen}
-                        />
-                        <Stack.Screen
-                          name="ConsultationView"
-                          component={ConsultationViewScreen}
-                        />
-                        <Stack.Screen
-                          name="DocumentAdd"
-                          component={DocumentAddScreen}
-                        />
-                        <Stack.Screen
-                          name="PatientProfileAdd"
-                          component={PatientProfileAddScreen}
-                        />
-                        <Stack.Screen
-                          name="PatientProfileView"
-                          component={PatientProfileViewScreen}
-                        />
-                        <Stack.Screen
-                          name="Permissions"
-                          component={PermissionsScreen}
-                        />
-                        <Stack.Screen
-                          name="Settings"
-                          component={SettingsScreen}
-                        />
-                        <Stack.Screen
-                          name="PermissionView"
-                          component={PermissionViewScreen}
-                        />
-                        <Stack.Screen name="Auth" component={LoginScreen} />
-                      </Stack.Navigator>
-                    </NavigationContainer>
-                  </WebRTCContextProvider>
-                </CurrentUserProfileContextProvider>
+                <Web3StorageContext.Provider value={web3StorageAxiosInstance}>
+                  <CurrentUserProfileContextProvider>
+                    <WebRTCContextProvider>
+                      <NavigationContainer>
+                        <Stack.Navigator initialRouteName="Splash">
+                          <Stack.Screen name="Home" component={HomeScreen} />
+                          <Stack.Screen
+                            name="Splash"
+                            component={SplashScreen}
+                          />
+                          <Stack.Screen
+                            name="DocumentView"
+                            component={DocumentViewScreen}
+                          />
+                          <Stack.Screen
+                            name="ConsultationView"
+                            component={ConsultationViewScreen}
+                          />
+                          <Stack.Screen
+                            name="DocumentAdd"
+                            component={DocumentAddScreen}
+                          />
+                          <Stack.Screen
+                            name="PatientProfileAdd"
+                            component={PatientProfileAddScreen}
+                          />
+                          <Stack.Screen
+                            name="PatientProfileView"
+                            component={PatientProfileViewScreen}
+                          />
+                          <Stack.Screen
+                            name="Permissions"
+                            component={PermissionsScreen}
+                          />
+                          <Stack.Screen
+                            name="Settings"
+                            component={SettingsScreen}
+                          />
+                          <Stack.Screen
+                            name="PermissionView"
+                            component={PermissionViewScreen}
+                          />
+                          <Stack.Screen name="Auth" component={LoginScreen} />
+                        </Stack.Navigator>
+                      </NavigationContainer>
+                    </WebRTCContextProvider>
+                  </CurrentUserProfileContextProvider>
+                </Web3StorageContext.Provider>
               </BlockChainAxiosContext.Provider>
             </AxiosContext.Provider>
           </QueryClientProvider>

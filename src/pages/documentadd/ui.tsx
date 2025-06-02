@@ -20,7 +20,7 @@ const DocumentAddScreen = () => {
   const [uri, setUri] = useState<string | undefined>(undefined);
   const [name, setName] = useState<string | undefined>(undefined);
   const [mime, setMime] = useState<string | undefined>(undefined);
-  const {readFile, saveFile} = useDocumentsModel();
+  const {readFile, createDocument} = useDocumentsModel();
   const navigation = useNavigation();
 
   const handleSaveFile = useCallback(async () => {
@@ -33,7 +33,7 @@ const DocumentAddScreen = () => {
       const document = new Document();
       document.mime = mime;
       document.name = name;
-      await saveFile(pureFile, document);
+      await createDocument(pureFile, document);
 
       navigation.goBack();
       Toast.show({
@@ -46,7 +46,7 @@ const DocumentAddScreen = () => {
       console.error('Ошибка:', err);
       Alert.alert('Ошибка', err.message || 'Что-то пошло не так');
     }
-  }, [mime, name, navigation, readFile, saveFile, uri]);
+  }, [mime, name, navigation, readFile, createDocument, uri]);
 
   const pickFile = useCallback(async () => {
     try {
