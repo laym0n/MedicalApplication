@@ -57,8 +57,8 @@ export const useDocumentsModel = () => {
         newDocument,
         encryptedFileContent,
       );
-      newDocument.cidId = backupData!.cidId!;
-      newDocument.transactionId = backupData!.transactionId!;
+      newDocument.cidId = backupData?.cidId;
+      newDocument.transactionId = backupData?.transactionId;
       await newDocument.save();
     },
     [backupFileWithSettingsVerify, saveDocumentFile],

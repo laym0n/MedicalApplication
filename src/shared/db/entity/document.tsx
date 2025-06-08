@@ -17,9 +17,9 @@ export class Document
   @Column({nullable: false})
   mime!: string;
   @Column({nullable: true})
-  transactionId!: string;
+  transactionId: string | undefined;
   @Column({nullable: true})
-  cidId!: string;
+  cidId: string | undefined;
   @ManyToOne(() => Consultation, consultation => consultation.documents, {
     nullable: true,
   })

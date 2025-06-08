@@ -44,6 +44,7 @@ export const useCreateNewCommonRTCPeerConnection = () => {
     async () => {
       const peerConstraints = {
         iceServers: await getIceServers(),
+        bundlePolicy: 'max-bundle',
       };
       const newPeerConnection = new RTCPeerConnection(peerConstraints);
 
