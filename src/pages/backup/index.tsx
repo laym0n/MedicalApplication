@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, Switch, StyleSheet} from 'react-native';
 import useBackupModel from '@shared/model/backupmodel';
 
-const SettingsScreen = () => {
+const BackupScreen = () => {
   const [backupEnabled, setBackupEnabled] = useState(false);
   const {getBackupSettings, setBackupSettings} = useBackupModel();
 
@@ -37,7 +37,7 @@ const SettingsScreen = () => {
   );
 };
 
-export default SettingsScreen;
+export default BackupScreen;
 
 const styles = StyleSheet.create({
   container: {

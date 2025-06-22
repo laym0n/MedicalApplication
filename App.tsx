@@ -20,7 +20,7 @@ import PatientProfileViewScreen from '@pages/patientprofile/ui';
 import PatientProfileAddScreen from '@pages/patientprofileadd/ui';
 import PermissionViewScreen from '@pages/permission/ui';
 import PermissionsScreen from '@pages/permissions/ui';
-import SettingsScreen from '@pages/settings';
+import BackupScreen from '@pages/backup';
 import SplashScreen from '@pages/splash';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -76,8 +76,8 @@ function App(): React.JSX.Element {
                             component={PermissionsScreen}
                           />
                           <Stack.Screen
-                            name="Settings"
-                            component={SettingsScreen}
+                            name="Backup"
+                            component={BackupScreen}
                           />
                           <Stack.Screen
                             name="PermissionView"

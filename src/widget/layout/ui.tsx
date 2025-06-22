@@ -34,8 +34,8 @@ const AuthneticatedControls: React.FC = () => {
   const onPermissionsPress = useCallback(() => {
     navigation.navigate('Permissions');
   }, [navigation]);
-  const onSettingsPress = useCallback(() => {
-    navigation.navigate('Settings');
+  const onBackupPress = useCallback(() => {
+    navigation.navigate('Backup');
   }, [navigation]);
   const onSignOutPress = useCallback(() => {
     signOutCall();
@@ -52,7 +52,7 @@ const AuthneticatedControls: React.FC = () => {
         </TouchableOpacity>
       }>
       <Menu.Item onPress={onPermissionsPress} title="Разрешения на данные" />
-      <Menu.Item onPress={onSettingsPress} title="Настройки" />
+      <Menu.Item onPress={onBackupPress} title="Резервное копирование" />
       <Menu.Item onPress={onSignOutPress} title="Выход" />
     </Menu>
   );
