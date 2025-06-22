@@ -39,6 +39,7 @@ const useBackupModel = () => {
         const masterKey = await getMasterKeyForUser(currentUserContext!.currentUserProfile!);
         const encryptedFileData = encryptWithKey(fileBase64Content, masterKey);
         const backUpRecord = await backUpFileAsync({ base64: encryptedFileData, fileName: record.fileId, mimeType: record.mime });
+        record.cidId = backUpRecord.txId;
         const backupData = await backupRecord(record);
         return { ...backupData, cidId: backUpRecord.txId };
     }, [backUpFileAsync, backupRecord, currentUserContext, getMasterKeyForUser]);
@@ -51,23 +52,28 @@ const useBackupModel = () => {
     }, [backupFile, getBackupSettings]);
     const { mutateAsync: getBackupedRecordAsync } = useGetBackupedRecord();
     const restoreRecord = useCallback(
-        async <T extends IBackUpable & BaseEntity>(
-            recordClass: { new(): T },
-            txId: string
-        ) => {
+        async (txId: string) => {
             const backupData = await getBackupedRecordAsync(txId);
             if (!backupData) {
                 throw new Error('Backup not found');
             }
-
             const masterKey = await getMasterKeyForUser(currentUserContext!.currentUserProfile!);
             const decryptedJson = decryptWithKey(backupData.data!, masterKey);
             const parsed = JSON.parse(decryptedJson);
-
+            return parsed;
+        },
+        [currentUserContext, getBackupedRecordAsync, getMasterKeyForUser]
+    );
+    const restoreClassRecord = useCallback(
+        async <T extends IBackUpable & BaseEntity>(
+            recordClass: { new(): T },
+            txId: string
+        ) => {
+            const parsed = await restoreRecord(txId);
             const record: T = Object.assign(new recordClass(), parsed);
             return record;
         },
-        [currentUserContext, getBackupedRecordAsync, getMasterKeyForUser]
+        [restoreRecord]
     );
     const { mutateAsync: getBackupedFileAsync } = useGetBackupedFile();
     const restoreFile = useCallback(
@@ -84,14 +90,14 @@ const useBackupModel = () => {
             const masterKey = await getMasterKeyForUser(currentUserContext!.currentUserProfile!);
             const fileBase64Content = decryptWithKey(backupData, masterKey);
 
-            const restoredRecord = await restoreRecord(recordClass, txId);
+            const restoredRecord = await restoreClassRecord(recordClass, txId);
 
             return { fileBase64Content, restoredRecord };
         },
-        [currentUserContext, getBackupedFileAsync, getMasterKeyForUser, restoreRecord]
+        [currentUserContext, getBackupedFileAsync, getMasterKeyForUser, restoreClassRecord]
     );
 
-    return { setBackupSettings, getBackupSettings, backupRecordWithSettingsVerify, backupRecord, backupFileWithSettingsVerify, backupFile, restoreRecord, restoreFile };
+    return { setBackupSettings, getBackupSettings, backupRecordWithSettingsVerify, backupRecord, backupFileWithSettingsVerify, backupFile, restoreClassRecord, restoreFile, restoreRecord };
 };
 
 export default useBackupModel;

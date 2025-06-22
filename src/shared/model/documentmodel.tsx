@@ -20,42 +20,40 @@ export const useDocumentsModel = () => {
   }, []);
   const saveDocumentFile = useCallback(
     async (pureFile: string, document: Document) => {
+      const encryptionKey = generateKey();
+      const encryptedFileContent = encryptWithKey(pureFile, encryptionKey);
       const newFileId = document.name + '_' + Date.now();
 
       const savePath = `${RNFS.DocumentDirectoryPath}/${newFileId}.enc`;
-      await RNFS.writeFile(savePath, pureFile, 'utf8');
+      await RNFS.writeFile(savePath, encryptedFileContent, 'utf8');
       if (document.fileUri) {
-        await RNFS.unlink(document.fileUri)
-          .catch(console.error);
+        await RNFS.unlink(document.fileUri).catch(console.error);
       }
       document.fileUri = savePath;
       document.fileId = newFileId;
       const newDocument = await document.save();
+      await Keychain.setGenericPassword(
+        getFileServiceName(newDocument),
+        encryptionKey,
+        {
+          service: getFileServiceName(newDocument),
+        },
+      );
       return {newDocument};
     },
     [],
   );
   const createDocument = useCallback(
     async (pureFile: string, document: Document) => {
-      const encryptionKey = generateKey();
-
-      const encryptedFileContent = encryptWithKey(pureFile, encryptionKey);
-
       if (document.fileUri) {
         await Keychain.resetGenericPassword({
           service: getFileServiceName(document),
         });
       }
-      const {newDocument} = await saveDocumentFile(
-        encryptedFileContent,
-        document,
-      );
-      await Keychain.setGenericPassword(getFileServiceName(newDocument), encryptionKey, {
-        service: getFileServiceName(newDocument),
-      });
+      const {newDocument} = await saveDocumentFile(pureFile, document);
       const backupData = await backupFileWithSettingsVerify(
         newDocument,
-        encryptedFileContent,
+        pureFile,
       );
       newDocument.cidId = backupData?.cidId;
       newDocument.transactionId = backupData?.transactionId;
@@ -63,20 +61,14 @@ export const useDocumentsModel = () => {
     },
     [backupFileWithSettingsVerify, saveDocumentFile],
   );
-  const backupDocument = useCallback(
-    async (documentId: string) => {
-      const document = await Document.findOneBy({id: documentId});
-      if (!document) {
-        return;
-      }
-      const encryptedFile = await RNFS.readFile(document.fileUri, 'utf8');
-      const backupData = await backupFile(document, encryptedFile);
-      document.cidId = backupData!.cidId!;
-      document.transactionId = backupData!.transactionId!;
-      await document.save();
-    },
-    [backupFile],
-  );
+  const createBackupDocument = useCallback(async (document: Document) => {
+    const optionalDocument = await Document.findOneBy({id: document.id});
+    if (optionalDocument) {
+      return false;
+    }
+    await document.save();
+    return true;
+  }, []);
   const restoreDocument = useCallback(
     async (documentId: string) => {
       const document = await Document.findOneBy({id: documentId});
@@ -106,6 +98,20 @@ export const useDocumentsModel = () => {
 
     return decryptWithKey(encryptedFile, encryptionKey);
   }, []);
+  const backupDocument = useCallback(
+    async (documentId: string) => {
+      const document = await Document.findOneBy({id: documentId});
+      if (!document) {
+        return;
+      }
+      const pureFile = await readDocument(document);
+      const backupData = await backupFile(document, pureFile!);
+      document.cidId = backupData!.cidId!;
+      document.transactionId = backupData!.transactionId!;
+      await document.save();
+    },
+    [backupFile, readDocument],
+  );
   const deleteDocumentById = useCallback(async (documentId: string) => {
     const document = await Document.findOneBy({id: documentId});
     if (document === null) {
@@ -132,5 +138,6 @@ export const useDocumentsModel = () => {
     readDocument,
     deleteDocumentById,
     deleteFileByDocumentId,
+    createBackupDocument,
   };
 };

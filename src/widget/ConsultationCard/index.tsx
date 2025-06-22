@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {Consultation} from '@shared/db/entity/consultation';
-import { formatDate } from '@shared/util/data-form';
+import {formatDate} from '@shared/util/data-form';
 import React, {useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import {Card, Button} from 'react-native-paper';
@@ -8,7 +8,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const ConsultationCard: React.FC<{
   consultation: Consultation;
-}> = ({consultation}) => {
+  onDelete?: (id: string) => void;
+}> = ({consultation, onDelete}) => {
   const navigation = useNavigation();
   const handleViewPress = useCallback(() => {
     navigation.navigate('ConsultationView', {
@@ -33,6 +34,11 @@ const ConsultationCard: React.FC<{
       />
       <Card.Actions>
         <Button onPress={handleViewPress}>Просмотр</Button>
+        {onDelete && (
+          <Button onPress={() => onDelete(consultation.id)}>
+            <Icon name="trash-can-outline" size={24} />
+          </Button>
+        )}
       </Card.Actions>
     </Card>
   );

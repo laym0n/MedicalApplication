@@ -9,10 +9,33 @@ const getConsultationServiceName = (consultation: Consultation) =>
   `consultationId ${consultation.id}`;
 
 export const useConsultationModel = () => {
-  const {backupRecordWithSettingsVerify, restoreRecord, backupRecord} =
-    useBackupModel();
+  const {
+    backupRecordWithSettingsVerify,
+    restoreClassRecord: restoreRecord,
+    backupRecord,
+  } = useBackupModel();
   const {mutateAsync: getConsultationAsync} = useGetConsultation();
   const {mutateAsync: searchProfilesAsync} = useSearchProfiles(() => {});
+  const saveRestored = useCallback(async (consultation: Consultation) => {
+    const optionalConsultation = await Consultation.findOneBy({
+      id: consultation.id,
+    });
+    if (optionalConsultation) {
+      return false;
+    }
+    const encryptionKey = generateKey();
+
+    consultation.encryptionKey = encryptionKey;
+    const newConsultation = await consultation.save();
+    await Keychain.setGenericPassword(
+      newConsultation.id.toString(),
+      encryptionKey,
+      {
+        service: getConsultationServiceName(newConsultation),
+      },
+    );
+    return true;
+  }, []);
   const save = useCallback(
     async (consultation: Consultation) => {
       const consultationDto = await getConsultationAsync(
@@ -88,8 +111,8 @@ export const useConsultationModel = () => {
       if (!consultation) {
         return;
       }
-      const backupData = await backupRecord(consultation);
       const decryptedConsultation = await getById(consultationId);
+      const backupData = await backupRecord(decryptedConsultation);
       decryptedConsultation!.transactionId = backupData.transactionId!;
       await decryptedConsultation!.save();
     },
@@ -110,18 +133,26 @@ export const useConsultationModel = () => {
       consultation.consultationId = restoredData.consultationId;
       consultation.userId = restoredData.userId;
       consultation.specialization = restoredData.specialization;
-      const credentials = await Keychain.getGenericPassword({
-        service: getConsultationServiceName(consultation),
-      });
-      if (!credentials) {
-        return;
-      }
-      const {password: encryptionKey} = credentials;
+      const encryptionKey = generateKey();
       consultation.encryptionKey = encryptionKey;
-      consultation.decryptFields();
-      consultation.save();
+      const newConsultation = await consultation.save();
+      await Keychain.setGenericPassword(
+        newConsultation.id.toString(),
+        encryptionKey,
+        {
+          service: getConsultationServiceName(newConsultation),
+        },
+      );
     },
     [restoreRecord],
   );
-  return {save, getById, getAllByIds, deleteById, backup, restore};
+  return {
+    save,
+    saveRestored,
+    getById,
+    getAllByIds,
+    deleteById,
+    backup,
+    restore,
+  };
 };

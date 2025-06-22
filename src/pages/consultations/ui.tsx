@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {Consultation} from '@shared/db/entity/consultation';
+import { useConsultationModel } from '@shared/model/consultationmodel';
 import ConsultationCard from '@widget/ConsultationCard';
 import Layout from '@widget/layout/ui';
 import React, {useCallback, useState} from 'react';
@@ -14,13 +15,14 @@ const ConsultationsScreen = () => {
     );
   }, []);
   useFocusEffect(loadConsultations);
+  const {deleteById} = useConsultationModel();
 
   return (
     <Layout>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
           {consultations.map(consultation => (
-            <ConsultationCard key={consultation.id} consultation={consultation} />
+            <ConsultationCard key={consultation.id} consultation={consultation} onDelete={deleteById} />
           ))}
         </ScrollView>
       </View>
