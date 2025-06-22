@@ -3,10 +3,12 @@ import {Document} from '@shared/db/entity/document';
 import {useDocumentsModel} from '@shared/model/documentmodel';
 import ConsultationCard from '@widget/ConsultationCard';
 import Layout from '@widget/layout/ui';
+import LoaderOverlay from '@widget/LoadOverlay/ui';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View, ActivityIndicator} from 'react-native';
 import {Button, Text} from 'react-native-paper';
 import Pdf from 'react-native-pdf';
+import Toast from 'react-native-toast-message';
 
 const PdfPreview = ({base64Data}: {base64Data: string}) => {
   const source = {
@@ -79,11 +81,37 @@ const DocumentViewScreen = () => {
 
   const {restoreDocument, backupDocument} = useDocumentsModel();
 
+  const [visibleRestoreIndicator, setVisibleRestoreIndicator] =
+    useState<boolean>(false);
+  const [statusRestoreIndicator, setStatusRestoreIndicator] =
+    useState<string>('');
   const handleRestoreBackup = useCallback(() => {
-    restoreDocument(documentId).then(loadDocument);
+    setVisibleRestoreIndicator(true);
+    setStatusRestoreIndicator('Восстановление');
+    restoreDocument(documentId)
+      .then(loadDocument)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          position: 'bottom',
+          text1: 'Документ успешно восстановлен',
+          visibilityTime: 3000,
+        }),
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          position: 'bottom',
+          text1: 'Ошибка восстановления документа',
+          visibilityTime: 3000,
+        }),
+      )
+      .finally(() => setVisibleRestoreIndicator(false));
   }, [documentId, loadDocument, restoreDocument]);
 
   const handleCreateBackup = useCallback(() => {
+    setVisibleRestoreIndicator(true);
+    setStatusRestoreIndicator('Создание резервной копии');
     backupDocument(documentId)
       .then(() =>
         Document.findOne({
@@ -91,7 +119,24 @@ const DocumentViewScreen = () => {
           relations: ['consultation'],
         }),
       )
-      .then(loadedDocument => setDocument(loadedDocument!));
+      .then(loadedDocument => setDocument(loadedDocument!))
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          position: 'bottom',
+          text1: 'Резервная копия успешно создана',
+          visibilityTime: 3000,
+        }),
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          position: 'bottom',
+          text1: 'Ошибка создания резервной копии',
+          visibilityTime: 3000,
+        }),
+      )
+      .finally(() => setVisibleRestoreIndicator(false));
   }, [backupDocument, documentId]);
 
   return (
@@ -124,13 +169,19 @@ const DocumentViewScreen = () => {
           </View>
 
           <View style={styles.pdfContainer}>
-            {fileError && <Text style={styles.title}>Ошибка загрузки документа</Text>}
+            {fileError && (
+              <Text style={styles.title}>Ошибка загрузки документа</Text>
+            )}
             {!fileError && decryptedBase64File && (
               <PdfPreview base64Data={decryptedBase64File} />
             )}
           </View>
         </View>
       )}
+      <LoaderOverlay
+        visible={visibleRestoreIndicator}
+        status={statusRestoreIndicator}
+      />
     </Layout>
   );
 };

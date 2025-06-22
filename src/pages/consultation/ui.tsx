@@ -13,6 +13,8 @@ import {
 import {useConsultationModel} from '@shared/model/consultationmodel';
 import {Document} from '@shared/db/entity/document';
 import DocumentCard from '@widget/DocumentCard';
+import LoaderOverlay from '@widget/LoadOverlay/ui';
+import Toast from 'react-native-toast-message';
 
 interface ConsultationProps {
   consultationId: string;
@@ -39,12 +41,58 @@ const ConsultationViewScreen = () => {
     }).then(setDocuments);
   }, [consultationId, getById]);
 
+  const [visibleRestoreIndicator, setVisibleRestoreIndicator] =
+    useState<boolean>(false);
+  const [statusRestoreIndicator, setStatusRestoreIndicator] =
+    useState<string>('');
   const handleRestoreBackup = useCallback(() => {
-    restore(consultationId).then(() => getById(consultationId)).then(setConsultation);
+    setVisibleRestoreIndicator(true);
+    setStatusRestoreIndicator('Восстановление');
+    restore(consultationId)
+      .then(() => getById(consultationId))
+      .then(setConsultation)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          position: 'bottom',
+          text1: 'Встреча успешна восстановлен',
+          visibilityTime: 3000,
+        }),
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          position: 'bottom',
+          text1: 'Ошибка восстановления встречи',
+          visibilityTime: 3000,
+        }),
+      )
+      .finally(() => setVisibleRestoreIndicator(false));
   }, [consultationId, getById, restore]);
 
   const handleCreateBackup = useCallback(() => {
-    backup(consultationId).then(() => getById(consultationId)).then(setConsultation).catch(console.error);
+    setVisibleRestoreIndicator(true);
+    setStatusRestoreIndicator('Создание резервной копии');
+    backup(consultationId)
+      .then(() => getById(consultationId))
+      .then(setConsultation)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          position: 'bottom',
+          text1: 'Резервная копия успешно создана',
+          visibilityTime: 3000,
+        }),
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          position: 'bottom',
+          text1: 'Ошибка создания резервной копии',
+          visibilityTime: 3000,
+        }),
+      )
+      .finally(() => setVisibleRestoreIndicator(false));
   }, [backup, consultationId, getById]);
 
   if (!consultation) {
@@ -103,6 +151,10 @@ const ConsultationViewScreen = () => {
           </>
         ))}
       </ScrollView>
+      <LoaderOverlay
+        visible={visibleRestoreIndicator}
+        status={statusRestoreIndicator}
+      />
     </Layout>
   );
 };

@@ -46,6 +46,7 @@ export const useCreateNewCommonRTCPeerConnection = () => {
         iceServers: await getIceServers(),
         bundlePolicy: 'max-bundle',
       };
+      // @ts-ignore
       const newPeerConnection = new RTCPeerConnection(peerConstraints);
 
       newPeerConnection.addEventListener('icegatheringstatechange', () => {

@@ -8,10 +8,8 @@ import {OneToMany} from 'typeorm';
 @Entity('consultation')
 export class Consultation extends BaseEntity implements IBackUpable {
   encryptionKey!: string;
-
   @Column({nullable: true})
   transactionId: string | undefined;
-
   @Column({nullable: false})
   data!: string;
   @Column({nullable: false})
