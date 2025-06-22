@@ -15,6 +15,7 @@ import {useDocumentsModel} from '@shared/model/documentmodel';
 import {Document} from '@shared/db/entity/document';
 import {useNavigation} from '@react-navigation/native';
 import {Button, Text, TextInput} from 'react-native-paper';
+import LoaderOverlay from '@widget/LoadOverlay/ui';
 
 const DocumentAddScreen = () => {
   const [uri, setUri] = useState<string | undefined>(undefined);
@@ -22,17 +23,23 @@ const DocumentAddScreen = () => {
   const [mime, setMime] = useState<string | undefined>(undefined);
   const {readFile, createDocument} = useDocumentsModel();
   const navigation = useNavigation();
+  const [visibleRestoreIndicator, setVisibleRestoreIndicator] =
+    useState<boolean>(false);
 
   const handleSaveFile = useCallback(async () => {
     try {
       if (!uri || !name || !mime) {
-        Alert.alert('Ошибка', 'Пожалуйста, выберите файл и введите имя документа.');
+        Alert.alert(
+          'Ошибка',
+          'Пожалуйста, выберите файл и введите имя документа.',
+        );
         return;
       }
       const {pureFile} = await readFile(uri);
       const document = new Document();
       document.mime = mime;
       document.name = name;
+      setVisibleRestoreIndicator(true);
       await createDocument(pureFile, document);
 
       navigation.goBack();
@@ -45,6 +52,8 @@ const DocumentAddScreen = () => {
     } catch (err: any) {
       console.error('Ошибка:', err);
       Alert.alert('Ошибка', err.message || 'Что-то пошло не так');
+    } finally {
+      setVisibleRestoreIndicator(false);
     }
   }, [mime, name, navigation, readFile, createDocument, uri]);
 
@@ -74,20 +83,17 @@ const DocumentAddScreen = () => {
     <Layout>
       <KeyboardAvoidingView
         style={{flex: 1}}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
+          keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Добавить новый документ</Text>
 
           <Button
             mode="contained"
             icon="file-plus"
             onPress={pickFile}
-            style={styles.pickButton}
-          >
+            style={styles.pickButton}>
             Выбрать файл
           </Button>
 
@@ -112,8 +118,7 @@ const DocumentAddScreen = () => {
               onPress={handleSaveFile}
               disabled={!uri || !name}
               style={styles.saveButton}
-              icon="content-save"
-            >
+              icon="content-save">
               Сохранить
             </Button>
 
@@ -121,10 +126,14 @@ const DocumentAddScreen = () => {
               mode="outlined"
               onPress={cancel}
               style={styles.cancelButton}
-              icon="cancel"
-            >
+              icon="cancel">
               Отменить
             </Button>
+
+            <LoaderOverlay
+              visible={visibleRestoreIndicator}
+              status="Сохранение документа"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
