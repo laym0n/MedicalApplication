@@ -1,8 +1,9 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Permission } from '@shared/db/entity/permission';
-import { formatDate } from '@shared/util/data-form';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {Permission} from '@shared/db/entity/permission';
+import {formatDate} from '@shared/util/data-form';
 import Layout from '@widget/layout/ui';
-import React, { useCallback, useState } from 'react';
+import React, {useCallback, useState} from 'react';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   ScrollView,
   StyleSheet,
@@ -11,14 +12,20 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-const PermissionCard: React.FC<{ permission: Permission }> = ({ permission }) => {
+const PermissionCard: React.FC<{
+  permission: Permission;
+  onDelete: (permissionId: string) => void;
+}> = ({permission, onDelete}) => {
   const navigation = useNavigation();
   const handleViewPress = useCallback(() => {
-    navigation.navigate('PermissionView', { permissionId: permission.id });
+    navigation.navigate('PermissionView', {permissionId: permission.id});
   }, [navigation, permission.id]);
 
   return (
-    <TouchableOpacity onPress={handleViewPress} style={styles.card} activeOpacity={0.9}>
+    <TouchableOpacity
+      onPress={handleViewPress}
+      style={styles.card}
+      activeOpacity={0.9}>
       <View style={styles.header}>
         <Text style={styles.userName}>
           {permission.userName || 'Имя неизвестно'}
@@ -37,6 +44,12 @@ const PermissionCard: React.FC<{ permission: Permission }> = ({ permission }) =>
           {formatDate(permission.endDate || permission.createdAt)}
         </Text>
       </View>
+      <View style={styles.metaSection}>
+        <TouchableOpacity
+          onPress={() => onDelete(permission.id)}>
+          <Icon name="trash-can-outline" size={24} color="#FF3B30" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -48,12 +61,27 @@ const PermissionsScreen = () => {
   }, []);
 
   useFocusEffect(loadPermissions);
+  const handleDeleteById = useCallback(
+    async (permissionId: string) => {
+      const permission = await Permission.findOneBy({id: permissionId});
+      if (!permission) {
+        return;
+      }
+      await Permission.delete(permissionId);
+      await loadPermissions();
+    },
+    [loadPermissions],
+  );
 
   return (
     <Layout>
       <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {permissions.map((permission) => (
-          <PermissionCard key={permission.id} permission={permission} />
+        {permissions.map(permission => (
+          <PermissionCard
+            key={permission.id}
+            permission={permission}
+            onDelete={handleDeleteById}
+          />
         ))}
       </ScrollView>
     </Layout>
@@ -82,7 +110,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 4,
