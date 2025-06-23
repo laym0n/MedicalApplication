@@ -1,5 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { PatientProfile } from '@shared/db/entity/patientprofile';
+import { usePatientProfileModel } from '@shared/model/patientprofilemodel';
 import Layout from '@widget/layout/ui';
 import PatientProfileCard from '@widget/PatientProfileCard';
 import React, { useCallback, useState } from 'react';
@@ -25,13 +26,18 @@ const PatientProfilesScreen = () => {
     () => navigation.navigate('PatientProfileAdd'),
     [navigation],
   );
+  const {deleteById} = usePatientProfileModel();
+  const handleDeleteById = useCallback(async (patientProfileId: string) => {
+    await deleteById(patientProfileId);
+    await loadDocuments();
+  }, [deleteById, loadDocuments]);
 
   return (
     <Layout>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
           {patientProfiles.map(profile => (
-            <PatientProfileCard key={profile.id} patientProfile={profile} />
+            <PatientProfileCard key={profile.id} patientProfile={profile} onDelete={handleDeleteById} />
           ))}
         </ScrollView>
 

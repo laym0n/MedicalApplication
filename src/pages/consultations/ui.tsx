@@ -16,13 +16,16 @@ const ConsultationsScreen = () => {
   }, []);
   useFocusEffect(loadConsultations);
   const {deleteById} = useConsultationModel();
-
+  const handleDeleteById = useCallback(async (consultationId: string) => {
+    await deleteById(consultationId);
+    await loadConsultations();
+  }, [deleteById, loadConsultations]);
   return (
     <Layout>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.cardsContainer}>
           {consultations.map(consultation => (
-            <ConsultationCard key={consultation.id} consultation={consultation} onDelete={deleteById} />
+            <ConsultationCard key={consultation.id} consultation={consultation} onDelete={handleDeleteById} />
           ))}
         </ScrollView>
       </View>

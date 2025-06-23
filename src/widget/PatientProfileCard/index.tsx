@@ -2,10 +2,12 @@ import {useNavigation} from '@react-navigation/native';
 import {PatientProfile} from '@shared/db/entity/patientprofile';
 import React, {useCallback} from 'react';
 import {StyleSheet, Text, TouchableOpacity} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const PatientProfileCard: React.FC<{patientProfile: PatientProfile}> = ({
-  patientProfile,
-}) => {
+const PatientProfileCard: React.FC<{
+  patientProfile: PatientProfile;
+  onDelete?: (id: string) => void;
+}> = ({patientProfile, onDelete}) => {
   const navigation = useNavigation();
 
   const handlePress = useCallback(() => {
@@ -17,6 +19,13 @@ const PatientProfileCard: React.FC<{patientProfile: PatientProfile}> = ({
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Text style={styles.cardText}>{patientProfile.name}</Text>
+      {onDelete && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => onDelete(patientProfile.id)}>
+          <Icon name="trash-can-outline" size={24} color="#FF3B30" />
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };
@@ -33,11 +42,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   cardText: {
     fontSize: 18,
     color: '#333',
     fontWeight: '500',
+  },
+  deleteButton: {
+    padding: 4,
   },
 });
 
